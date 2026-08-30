@@ -8,6 +8,7 @@ public sealed record WorksheetSpec(
     int MultiplierMax,
     int ProblemCount,
     ProblemOrder Order,
+    PaperSize Paper,
     PageOrientation Orientation,
     int Seed,
     string Title,
@@ -25,6 +26,7 @@ public sealed record WorksheetSpec(
         MultiplierMax: 12,
         ProblemCount: 30,
         Order: ProblemOrder.Shuffled,
+        Paper: PaperSize.Letter,
         Orientation: PageOrientation.Portrait,
         Seed: 1,
         Title: "Multiplication Practice",
@@ -113,6 +115,16 @@ public sealed record WorksheetSpec(
             }
         }
 
+        var paper = Default.Paper;
+        if (values.TryGetValue("paper", out var paperRaw) && !string.IsNullOrWhiteSpace(paperRaw))
+        {
+            if (!Enum.TryParse(paperRaw, ignoreCase: true, out paper))
+            {
+                error = $"Unknown paper size '{paperRaw}'.";
+                return false;
+            }
+        }
+
         var orientation = Default.Orientation;
         if (values.TryGetValue("orient", out var orientRaw) && !string.IsNullOrWhiteSpace(orientRaw))
         {
@@ -153,9 +165,12 @@ public sealed record WorksheetSpec(
             }
         }
 
-        spec = new WorksheetSpec(tables, min, max, count, order, orientation, seed, title, showNameAndDate);
+        spec = new WorksheetSpec(tables, min, max, count, order, paper, orientation, seed, title, showNameAndDate);
         return true;
     }
+
+    /// <summary>Printed-page geometry for this spec's paper size and orientation.</summary>
+    public PageMetrics Page => PageLayout.Measure(Paper, Orientation);
 
     /// <summary>Serializes the spec back to query-string pairs, the inverse of <see cref="TryParse"/>.</summary>
     public IReadOnlyList<KeyValuePair<string, string>> ToQuery() => new[]
@@ -165,6 +180,7 @@ public sealed record WorksheetSpec(
         new KeyValuePair<string, string>("max", MultiplierMax.ToString(CultureInfo.InvariantCulture)),
         new KeyValuePair<string, string>("count", ProblemCount.ToString(CultureInfo.InvariantCulture)),
         new KeyValuePair<string, string>("order", Order.ToString()),
+        new KeyValuePair<string, string>("paper", Paper.ToString()),
         new KeyValuePair<string, string>("orient", Orientation.ToString()),
         new KeyValuePair<string, string>("seed", Seed.ToString(CultureInfo.InvariantCulture)),
         new KeyValuePair<string, string>("title", Title),

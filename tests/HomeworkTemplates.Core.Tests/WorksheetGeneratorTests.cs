@@ -10,6 +10,7 @@ public class WorksheetGeneratorTests
         int max = 12,
         int count = 30,
         ProblemOrder order = ProblemOrder.Shuffled,
+        PaperSize paper = PaperSize.Letter,
         PageOrientation orientation = PageOrientation.Portrait,
         int seed = 1) =>
         new(
@@ -18,6 +19,7 @@ public class WorksheetGeneratorTests
             max,
             count,
             order,
+            paper,
             orientation,
             seed,
             "Test",

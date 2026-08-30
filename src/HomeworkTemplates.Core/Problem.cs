@@ -12,6 +12,15 @@ public enum PageOrientation
     Landscape,
 }
 
+public enum PaperSize
+{
+    Letter,
+    Legal,
+    Tabloid,
+    A4,
+    A5,
+}
+
 public readonly record struct Problem(int Left, int Right)
 {
     public int Answer => Left * Right;
