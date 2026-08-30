@@ -53,4 +53,23 @@ public class WorksheetSpecTests
         Assert.False(ok);
         Assert.NotNull(error);
     }
+
+    [Fact]
+    public void Rejects_an_unknown_orientation_value()
+    {
+        var ok = WorksheetSpec.TryParse(Query(("orient", "diagonal")), out _, out var error);
+
+        Assert.False(ok);
+        Assert.NotNull(error);
+    }
+
+    [Fact]
+    public void Orientation_survives_a_query_round_trip()
+    {
+        var landscape = WorksheetSpec.Default with { Orientation = PageOrientation.Landscape };
+        var query = landscape.ToQuery().ToDictionary(pair => pair.Key, pair => (string?)pair.Value);
+
+        Assert.True(WorksheetSpec.TryParse(query, out var spec, out _));
+        Assert.Equal(PageOrientation.Landscape, spec.Orientation);
+    }
 }

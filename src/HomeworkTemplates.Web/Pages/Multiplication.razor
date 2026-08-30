@@ -6,6 +6,15 @@
 
 <PageTitle>Multiplication Tables</PageTitle>
 
+<HeadContent>
+    <style>
+        @@page {
+            size: A4 @(_orientation == PageOrientation.Landscape ? "landscape" : "portrait");
+            margin: 14mm;
+        }
+    </style>
+</HeadContent>
+
 <h1 class="no-print">Multiplication Tables</h1>
 
 <div class="controls no-print">
@@ -60,6 +69,22 @@
         </label>
     </div>
 
+    <div class="control-group control-row">
+        <span class="group-label">Preview</span>
+        <label>
+            <input type="radio" name="orientation"
+                   checked="@(_orientation == PageOrientation.Portrait)"
+                   @onchange="@(() => SetOrientation(PageOrientation.Portrait))" />
+            Portrait
+        </label>
+        <label>
+            <input type="radio" name="orientation"
+                   checked="@(_orientation == PageOrientation.Landscape)"
+                   @onchange="@(() => SetOrientation(PageOrientation.Landscape))" />
+            Landscape
+        </label>
+    </div>
+
     <div class="control-group">
         <label class="block">
             Title
@@ -107,6 +132,7 @@
     private int _count;
     private int _seed;
     private ProblemOrder _order;
+    private PageOrientation _orientation;
     private string _title = string.Empty;
     private bool _showNameAndDate;
     private bool _showAnswerKey;
@@ -135,6 +161,7 @@
         _max = spec.MultiplierMax;
         _count = spec.ProblemCount;
         _order = spec.Order;
+        _orientation = spec.Orientation;
         _seed = spec.Seed;
         _title = spec.Title;
         _showNameAndDate = spec.ShowNameAndDate;
@@ -162,6 +189,12 @@
         Rebuild();
     }
 
+    private void SetOrientation(PageOrientation orientation)
+    {
+        _orientation = orientation;
+        Rebuild();
+    }
+
     private void ShuffleSeed()
     {
         _seed = Random.Shared.Next();
@@ -183,6 +216,7 @@
             ["max"] = _max.ToString(CultureInfo.InvariantCulture),
             ["count"] = _count.ToString(CultureInfo.InvariantCulture),
             ["order"] = _order.ToString(),
+            ["orient"] = _orientation.ToString(),
             ["seed"] = _seed.ToString(CultureInfo.InvariantCulture),
             ["title"] = _title,
             ["names"] = _showNameAndDate ? "true" : "false",

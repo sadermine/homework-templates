@@ -10,6 +10,7 @@ public class WorksheetGeneratorTests
         int max = 12,
         int count = 30,
         ProblemOrder order = ProblemOrder.Shuffled,
+        PageOrientation orientation = PageOrientation.Portrait,
         int seed = 1) =>
         new(
             tables ?? new[] { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 },
@@ -17,6 +18,7 @@ public class WorksheetGeneratorTests
             max,
             count,
             order,
+            orientation,
             seed,
             "Test",
             ShowNameAndDate: true);

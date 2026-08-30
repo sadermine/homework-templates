@@ -1,4 +1,4 @@
-<section class="sheet worksheet-sheet">
+<section class="sheet worksheet-sheet@(Worksheet.Spec.Orientation == PageOrientation.Landscape ? " landscape" : string.Empty)">
     <header class="sheet-header">
         <h2 class="sheet-title">@Worksheet.Spec.Title</h2>
         @if (Worksheet.Spec.ShowNameAndDate)
