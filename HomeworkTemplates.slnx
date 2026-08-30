@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HomeworkTemplates.Core/HomeworkTemplates.Core.csproj" />
+    <Project Path="src/HomeworkTemplates.Web/HomeworkTemplates.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HomeworkTemplates.Core.Tests/HomeworkTemplates.Core.Tests.csproj" />
+  </Folder>
+</Solution>

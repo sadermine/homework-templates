@@ -1,0 +1,10 @@
+bin/
+obj/
+publish/
+*.user
+.vs/
+.idea/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+*.binlog
