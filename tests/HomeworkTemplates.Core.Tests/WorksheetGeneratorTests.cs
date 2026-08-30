@@ -81,18 +81,30 @@ public class WorksheetGeneratorTests
     }
 
     [Fact]
-    public void Sequential_emits_the_pool_sorted_by_left_then_right()
+    public void Sequential_places_problems_down_each_column_then_across()
     {
+        // Sorted pool is (2,2)(2,3)(2,4)(3,2)(3,3)(3,4); Letter portrait has 3 columns.
         var spec = Spec(tables: new[] { 3, 2 }, min: 2, max: 4, count: 6, order: ProblemOrder.Sequential);
 
         var worksheet = WorksheetGenerator.Generate(spec);
 
         Problem[] expected =
         [
-            new(2, 2), new(2, 3), new(2, 4),
-            new(3, 2), new(3, 3), new(3, 4),
+            new(2, 2), new(2, 4), new(3, 3),
+            new(2, 3), new(3, 2), new(3, 4),
         ];
         Assert.Equal(expected, worksheet.Problems);
+    }
+
+    [Fact]
+    public void Shuffled_output_is_not_reflowed_into_columns()
+    {
+        var spec = Spec(tables: new[] { 3, 2 }, min: 2, max: 4, count: 6, order: ProblemOrder.Shuffled);
+
+        var shuffled = WorksheetGenerator.Generate(spec).Problems;
+        var sequential = WorksheetGenerator.Generate(spec with { Order = ProblemOrder.Sequential }).Problems;
+
+        Assert.NotEqual(sequential, shuffled);
     }
 
     [Fact]
