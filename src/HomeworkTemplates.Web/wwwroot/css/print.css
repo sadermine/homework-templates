@@ -10,6 +10,8 @@
     box-shadow: 0 2px 14px rgba(0, 0, 0, 0.12);
 }
 
+/* The header and footer heights and margins below are mirrored into
+   PageLayout.SheetChromeMm, which sets the printed row pitch. Keep them in sync. */
 .sheet-header {
     margin-bottom: 10mm;
 }
@@ -34,7 +36,10 @@
 
 .problem-grid {
     display: grid;
-    gap: 10mm var(--column-gap, 8mm);
+    grid-auto-rows: var(--row-height, 14.21675mm);
+    row-gap: 0;
+    column-gap: var(--column-gap, 8mm);
+    align-items: center;
 }
 
 /* On screen the sheet keeps its true paper width and the preview scrolls, so a

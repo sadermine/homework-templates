@@ -18,11 +18,38 @@ public class PageLayoutTests
         { PaperSize.A5, PageOrientation.Landscape, 3 },
     };
 
+    public static TheoryData<PaperSize, PageOrientation, int> RowTable => new()
+    {
+        { PaperSize.Letter, PageOrientation.Portrait, 14 },
+        { PaperSize.Letter, PageOrientation.Landscape, 10 },
+        { PaperSize.Legal, PageOrientation.Portrait, 19 },
+        { PaperSize.Legal, PageOrientation.Landscape, 10 },
+        { PaperSize.Tabloid, PageOrientation.Portrait, 25 },
+        { PaperSize.Tabloid, PageOrientation.Landscape, 14 },
+        { PaperSize.A4, PageOrientation.Portrait, 15 },
+        { PaperSize.A4, PageOrientation.Landscape, 9 },
+        { PaperSize.A5, PageOrientation.Portrait, 9 },
+        { PaperSize.A5, PageOrientation.Landscape, 5 },
+    };
+
     [Theory]
     [MemberData(nameof(ColumnTable))]
     public void Column_count_matches_the_agreed_table(PaperSize paper, PageOrientation orientation, int expected)
     {
         Assert.Equal(expected, PageLayout.Measure(paper, orientation).Columns);
+    }
+
+    [Theory]
+    [MemberData(nameof(RowTable))]
+    public void Row_count_matches_the_derived_table(PaperSize paper, PageOrientation orientation, int expected)
+    {
+        Assert.Equal(expected, PageLayout.Measure(paper, orientation).Rows);
+    }
+
+    [Fact]
+    public void Letter_landscape_fits_exactly_ten_rows()
+    {
+        Assert.Equal(10, PageLayout.Measure(PaperSize.Letter, PageOrientation.Landscape).Rows);
     }
 
     [Theory]
@@ -32,8 +59,28 @@ public class PageLayoutTests
         var page = PageLayout.Measure(paper, orientation);
 
         Assert.True(
-            page.ColumnWidthMm >= PageLayout.MinProblemMm,
-            $"{paper} {orientation}: {page.ColumnWidthMm:0.0}mm columns, need {PageLayout.MinProblemMm:0.0}mm.");
+            page.ColumnWidthMm >= PageLayout.MinProblemWidthMm,
+            $"{paper} {orientation}: {page.ColumnWidthMm:0.0}mm columns, need {PageLayout.MinProblemWidthMm:0.0}mm.");
+    }
+
+    [Fact]
+    public void Every_row_is_tall_enough_for_a_problem()
+    {
+        Assert.True(
+            PageLayout.RowHeightMm >= PageLayout.MinProblemHeightMm,
+            $"{PageLayout.RowHeightMm:0.0}mm row pitch, need {PageLayout.MinProblemHeightMm:0.0}mm.");
+    }
+
+    [Theory]
+    [MemberData(nameof(RowTable))]
+    public void Rows_and_chrome_fit_inside_the_page_height(PaperSize paper, PageOrientation orientation, int _)
+    {
+        var page = PageLayout.Measure(paper, orientation);
+        var used = (page.Rows * PageLayout.RowHeightMm) + PageLayout.SheetChromeMm + (2 * PageLayout.MarginMm);
+
+        Assert.True(
+            used <= page.HeightMm + 1e-6,
+            $"{paper} {orientation}: {page.Rows} rows use {used:0.0}mm of a {page.HeightMm:0.0}mm page.");
     }
 
     [Fact]
@@ -59,6 +106,7 @@ public class PageLayoutTests
                 Assert.True(page.WidthMm > 0);
                 Assert.True(page.HeightMm > 0);
                 Assert.True(page.Columns > 0);
+                Assert.True(page.Rows > 0);
             }
         }
     }

@@ -9,7 +9,7 @@ namespace HomeworkTemplates.Web;
 internal static class SheetStyle
 {
     public static string For(PageMetrics page) => FormattableString.Invariant(
-        $"--sheet-width: {page.WidthMm}mm; --page-margin: {PageLayout.MarginMm}mm; --column-gap: {PageLayout.ColumnGapMm}mm");
+        $"--sheet-width: {page.WidthMm}mm; --page-margin: {PageLayout.MarginMm}mm; --column-gap: {PageLayout.ColumnGapMm}mm; --row-height: {PageLayout.RowHeightMm:0.#####}mm");
 
     public static string GridColumns(PageMetrics page) => FormattableString.Invariant(
         $"grid-template-columns: repeat({page.Columns}, minmax(0, 1fr))");
