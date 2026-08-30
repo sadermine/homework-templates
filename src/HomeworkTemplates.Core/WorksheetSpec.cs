@@ -25,7 +25,7 @@ public sealed record WorksheetSpec(
         MultiplierMin: 1,
         MultiplierMax: 12,
         ProblemCount: 30,
-        Order: ProblemOrder.Shuffled,
+        Order: ProblemOrder.Sequential,
         Paper: PaperSize.Letter,
         Orientation: PageOrientation.Portrait,
         Seed: 1,

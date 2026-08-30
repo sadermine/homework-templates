@@ -59,6 +59,10 @@ public static class WorksheetGenerator
             }
         }
 
-        return new Worksheet(spec, problems);
+        var ordered = spec.Order == ProblemOrder.Sequential
+            ? ProblemLayout.ColumnMajor(problems, spec.Page.Columns)
+            : problems;
+
+        return new Worksheet(spec, ordered);
     }
 }

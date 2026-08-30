@@ -89,6 +89,12 @@ public class WorksheetSpecTests
     }
 
     [Fact]
+    public void Defaults_to_sequential_order()
+    {
+        Assert.Equal(ProblemOrder.Sequential, WorksheetSpec.Default.Order);
+    }
+
+    [Fact]
     public void Paper_size_survives_a_query_round_trip()
     {
         var legal = WorksheetSpec.Default with { Paper = PaperSize.Legal };
