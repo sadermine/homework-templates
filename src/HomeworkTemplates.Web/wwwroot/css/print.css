@@ -1,8 +1,8 @@
 .sheet {
     box-sizing: border-box;
-    max-width: 210mm;
+    max-width: var(--sheet-width, 215.9mm);
     margin: 1.5rem auto;
-    padding: 18mm 16mm;
+    padding: var(--page-margin, 14mm);
     background: #fff;
     color: #1a1a1a;
     border: 1px solid #d4d4d4;
@@ -34,21 +34,21 @@
 
 .problem-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10mm 8mm;
+    gap: 10mm var(--column-gap, 8mm);
 }
 
-.sheet.landscape {
-    max-width: 297mm;
-}
+/* On screen the sheet keeps its true paper width and the preview scrolls, so a
+   wide size (Tabloid, landscape) previews at 1:1 instead of squashing its grid.
+   Print overrides this below with max-width: none and the @page size. */
+@media screen {
+    .page main .content {
+        overflow-x: auto;
+    }
 
-.sheet.landscape .problem-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 10mm 5mm;
-}
-
-.sheet.landscape .problem {
-    font-size: 1rem;
+    .sheet {
+        max-width: none;
+        width: var(--sheet-width, 215.9mm);
+    }
 }
 
 .problem {

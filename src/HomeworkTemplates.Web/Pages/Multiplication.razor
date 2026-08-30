@@ -1,5 +1,4 @@
 @page "/multiplication"
-@using System.Globalization
 @implements IAsyncDisposable
 @inject NavigationManager Nav
 @inject IJSRuntime JS
@@ -9,8 +8,8 @@
 <HeadContent>
     <style>
         @@page {
-            size: A4 @(_orientation == PageOrientation.Landscape ? "landscape" : "portrait");
-            margin: 14mm;
+            size: @Mm(Page.WidthMm) @Mm(Page.HeightMm);
+            margin: @Mm(PageLayout.MarginMm);
         }
     </style>
 </HeadContent>
@@ -70,7 +69,16 @@
     </div>
 
     <div class="control-group control-row">
-        <span class="group-label">Preview</span>
+        <span class="group-label">Print Preview</span>
+        <label>
+            Paper Size:
+            <select @bind="_paper" @bind:after="Rebuild">
+                @foreach (var paper in Enum.GetValues<PaperSize>())
+                {
+                    <option value="@paper">@paper</option>
+                }
+            </select>
+        </label>
         <label>
             <input type="radio" name="orientation"
                    checked="@(_orientation == PageOrientation.Portrait)"
@@ -132,6 +140,7 @@
     private int _count;
     private int _seed;
     private ProblemOrder _order;
+    private PaperSize _paper;
     private PageOrientation _orientation;
     private string _title = string.Empty;
     private bool _showNameAndDate;
@@ -140,6 +149,11 @@
     private Worksheet _worksheet = default!;
     private string? _error;
     private IJSObjectReference? _module;
+
+    private PageMetrics Page => _worksheet.Spec.Page;
+
+    private static string Mm(double millimetres) =>
+        FormattableString.Invariant($"{millimetres}mm");
 
     protected override void OnInitialized()
     {
@@ -161,6 +175,7 @@
         _max = spec.MultiplierMax;
         _count = spec.ProblemCount;
         _order = spec.Order;
+        _paper = spec.Paper;
         _orientation = spec.Orientation;
         _seed = spec.Seed;
         _title = spec.Title;
@@ -209,18 +224,12 @@
             return;
         }
 
-        var values = new Dictionary<string, string?>
-        {
-            ["tables"] = string.Join(',', _tables.OrderBy(table => table)),
-            ["min"] = _min.ToString(CultureInfo.InvariantCulture),
-            ["max"] = _max.ToString(CultureInfo.InvariantCulture),
-            ["count"] = _count.ToString(CultureInfo.InvariantCulture),
-            ["order"] = _order.ToString(),
-            ["orient"] = _orientation.ToString(),
-            ["seed"] = _seed.ToString(CultureInfo.InvariantCulture),
-            ["title"] = _title,
-            ["names"] = _showNameAndDate ? "true" : "false",
-        };
+        var candidate = new WorksheetSpec(
+            _tables.OrderBy(table => table).ToArray(),
+            _min, _max, _count, _order, _paper, _orientation, _seed, _title, _showNameAndDate);
+
+        var values = candidate.ToQuery()
+            .ToDictionary(pair => pair.Key, pair => (string?)pair.Value);
 
         if (WorksheetSpec.TryParse(values, out var spec, out _error))
         {

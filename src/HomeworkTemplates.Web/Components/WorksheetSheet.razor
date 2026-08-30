@@ -1,4 +1,4 @@
-<section class="sheet worksheet-sheet@(Worksheet.Spec.Orientation == PageOrientation.Landscape ? " landscape" : string.Empty)">
+<section class="sheet worksheet-sheet" style="@SheetStyle.For(Worksheet.Spec.Page)">
     <header class="sheet-header">
         <h2 class="sheet-title">@Worksheet.Spec.Title</h2>
         @if (Worksheet.Spec.ShowNameAndDate)
@@ -10,7 +10,7 @@
         }
     </header>
 
-    <div class="problem-grid">
+    <div class="problem-grid" style="@SheetStyle.GridColumns(Worksheet.Spec.Page)">
         @foreach (var problem in Worksheet.Problems)
         {
             <div class="problem">

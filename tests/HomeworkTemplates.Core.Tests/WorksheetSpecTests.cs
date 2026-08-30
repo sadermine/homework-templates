@@ -72,4 +72,29 @@ public class WorksheetSpecTests
         Assert.True(WorksheetSpec.TryParse(query, out var spec, out _));
         Assert.Equal(PageOrientation.Landscape, spec.Orientation);
     }
+
+    [Fact]
+    public void Rejects_an_unknown_paper_size()
+    {
+        var ok = WorksheetSpec.TryParse(Query(("paper", "foolscap")), out _, out var error);
+
+        Assert.False(ok);
+        Assert.NotNull(error);
+    }
+
+    [Fact]
+    public void Defaults_to_letter_paper()
+    {
+        Assert.Equal(PaperSize.Letter, WorksheetSpec.Default.Paper);
+    }
+
+    [Fact]
+    public void Paper_size_survives_a_query_round_trip()
+    {
+        var legal = WorksheetSpec.Default with { Paper = PaperSize.Legal };
+        var query = legal.ToQuery().ToDictionary(pair => pair.Key, pair => (string?)pair.Value);
+
+        Assert.True(WorksheetSpec.TryParse(query, out var spec, out _));
+        Assert.Equal(PaperSize.Legal, spec.Paper);
+    }
 }

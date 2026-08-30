@@ -1,0 +1,16 @@
+using HomeworkTemplates.Core;
+
+namespace HomeworkTemplates.Web;
+
+/// <summary>
+/// Renders <see cref="PageMetrics"/> as the CSS custom properties the sheet styles read.
+/// Keeps the invariant number formatting in one place, out of the Razor markup.
+/// </summary>
+internal static class SheetStyle
+{
+    public static string For(PageMetrics page) => FormattableString.Invariant(
+        $"--sheet-width: {page.WidthMm}mm; --page-margin: {PageLayout.MarginMm}mm; --column-gap: {PageLayout.ColumnGapMm}mm");
+
+    public static string GridColumns(PageMetrics page) => FormattableString.Invariant(
+        $"grid-template-columns: repeat({page.Columns}, minmax(0, 1fr))");
+}
