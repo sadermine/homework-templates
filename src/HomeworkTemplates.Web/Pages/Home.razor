@@ -9,7 +9,7 @@
 <div class="template-list">
     @foreach (var template in TemplateCatalog.All)
     {
-        <a class="template-card" href="@($"/{template.Slug}")">
+        <a class="template-card" href="@template.Slug">
             <h2>@template.Name</h2>
             <p>@template.Description</p>
         </a>
