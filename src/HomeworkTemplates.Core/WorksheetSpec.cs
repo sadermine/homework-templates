@@ -8,6 +8,7 @@ public sealed record WorksheetSpec(
     int MultiplierMax,
     int ProblemCount,
     ProblemOrder Order,
+    PageOrientation Orientation,
     int Seed,
     string Title,
     bool ShowNameAndDate)
@@ -24,6 +25,7 @@ public sealed record WorksheetSpec(
         MultiplierMax: 12,
         ProblemCount: 30,
         Order: ProblemOrder.Shuffled,
+        Orientation: PageOrientation.Portrait,
         Seed: 1,
         Title: "Multiplication Practice",
         ShowNameAndDate: true);
@@ -111,6 +113,16 @@ public sealed record WorksheetSpec(
             }
         }
 
+        var orientation = Default.Orientation;
+        if (values.TryGetValue("orient", out var orientRaw) && !string.IsNullOrWhiteSpace(orientRaw))
+        {
+            if (!Enum.TryParse(orientRaw, ignoreCase: true, out orientation))
+            {
+                error = $"Unknown orientation '{orientRaw}'.";
+                return false;
+            }
+        }
+
         if (!TryReadInt(values, "seed", Default.Seed, out var seed, out error))
         {
             return false;
@@ -141,7 +153,7 @@ public sealed record WorksheetSpec(
             }
         }
 
-        spec = new WorksheetSpec(tables, min, max, count, order, seed, title, showNameAndDate);
+        spec = new WorksheetSpec(tables, min, max, count, order, orientation, seed, title, showNameAndDate);
         return true;
     }
 
@@ -153,6 +165,7 @@ public sealed record WorksheetSpec(
         new KeyValuePair<string, string>("max", MultiplierMax.ToString(CultureInfo.InvariantCulture)),
         new KeyValuePair<string, string>("count", ProblemCount.ToString(CultureInfo.InvariantCulture)),
         new KeyValuePair<string, string>("order", Order.ToString()),
+        new KeyValuePair<string, string>("orient", Orientation.ToString()),
         new KeyValuePair<string, string>("seed", Seed.ToString(CultureInfo.InvariantCulture)),
         new KeyValuePair<string, string>("title", Title),
         new KeyValuePair<string, string>("names", ShowNameAndDate ? "true" : "false"),

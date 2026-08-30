@@ -6,6 +6,12 @@ public enum ProblemOrder
     Shuffled,
 }
 
+public enum PageOrientation
+{
+    Portrait,
+    Landscape,
+}
+
 public readonly record struct Problem(int Left, int Right)
 {
     public int Answer => Left * Right;

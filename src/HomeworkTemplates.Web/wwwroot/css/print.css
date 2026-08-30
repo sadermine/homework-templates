@@ -38,6 +38,19 @@
     gap: 10mm 8mm;
 }
 
+.sheet.landscape {
+    max-width: 297mm;
+}
+
+.sheet.landscape .problem-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10mm 5mm;
+}
+
+.sheet.landscape .problem {
+    font-size: 1rem;
+}
+
 .problem {
     display: flex;
     align-items: baseline;
@@ -68,11 +81,6 @@
 }
 
 @media print {
-    @page {
-        size: A4;
-        margin: 14mm;
-    }
-
     .no-print,
     .controls,
     .sidebar,
