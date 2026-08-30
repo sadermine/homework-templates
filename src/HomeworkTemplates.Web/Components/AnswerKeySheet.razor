@@ -1,0 +1,21 @@
+<section class="sheet answer-key-sheet">
+    <header class="sheet-header">
+        <h2 class="sheet-title">Answer Key for @Worksheet.Spec.Title</h2>
+    </header>
+
+    <div class="problem-grid">
+        @foreach (var problem in Worksheet.Problems)
+        {
+            <div class="problem">
+                <span class="problem-text">@problem.Left &times; @problem.Right = @problem.Answer</span>
+            </div>
+        }
+    </div>
+
+    <footer class="sheet-footer">Seed @Worksheet.Spec.Seed</footer>
+</section>
+
+@code {
+    [Parameter]
+    public Worksheet Worksheet { get; set; } = default!;
+}

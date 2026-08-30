@@ -1,0 +1,30 @@
+.template-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.template-card {
+    display: block;
+    padding: 1rem 1.25rem;
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+}
+
+.template-card:hover {
+    border-color: #0071c1;
+}
+
+.template-card h2 {
+    margin: 0 0 0.35rem;
+    font-size: 1.15rem;
+}
+
+.template-card p {
+    margin: 0;
+    color: #555;
+}

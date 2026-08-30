@@ -1,7 +1,17 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Printable Homework Templates</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Printable Homework Templates</h1>
 
-Welcome to your new app.
+<p>Pick a template, adjust it to the class you are teaching, and print a clean worksheet.</p>
+
+<div class="template-list">
+    @foreach (var template in TemplateCatalog.All)
+    {
+        <a class="template-card" href="@($"/{template.Slug}")">
+            <h2>@template.Name</h2>
+            <p>@template.Description</p>
+        </a>
+    }
+</div>

@@ -1,0 +1,224 @@
+@page "/multiplication"
+@using System.Globalization
+@implements IAsyncDisposable
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>Multiplication Tables</PageTitle>
+
+<h1 class="no-print">Multiplication Tables</h1>
+
+<div class="controls no-print">
+    @if (_error is not null)
+    {
+        <p class="controls-error" role="alert">@_error</p>
+    }
+
+    <fieldset class="control-group">
+        <legend>Tables</legend>
+        <div class="table-options">
+            @foreach (var table in SelectableTables)
+            {
+                <label>
+                    <input type="checkbox"
+                           checked="@_tables.Contains(table)"
+                           @onchange="@(e => ToggleTable(table, (bool)(e.Value ?? false)))" />
+                    @table
+                </label>
+            }
+        </div>
+    </fieldset>
+
+    <div class="control-group control-row">
+        <label>
+            Multiplier min
+            <input type="number" min="1" max="20" @bind="_min" @bind:after="Rebuild" />
+        </label>
+        <label>
+            Multiplier max
+            <input type="number" min="1" max="20" @bind="_max" @bind:after="Rebuild" />
+        </label>
+        <label>
+            Problems
+            <input type="number" min="1" max="100" @bind="_count" @bind:after="Rebuild" />
+        </label>
+    </div>
+
+    <div class="control-group control-row">
+        <span class="group-label">Order</span>
+        <label>
+            <input type="radio" name="order"
+                   checked="@(_order == ProblemOrder.Sequential)"
+                   @onchange="@(() => SetOrder(ProblemOrder.Sequential))" />
+            Sequential
+        </label>
+        <label>
+            <input type="radio" name="order"
+                   checked="@(_order == ProblemOrder.Shuffled)"
+                   @onchange="@(() => SetOrder(ProblemOrder.Shuffled))" />
+            Shuffled
+        </label>
+    </div>
+
+    <div class="control-group">
+        <label class="block">
+            Title
+            <input type="text" maxlength="80" @bind="_title" @bind:after="Rebuild" />
+        </label>
+    </div>
+
+    <div class="control-group">
+        <label>
+            <input type="checkbox" @bind="_showNameAndDate" @bind:after="Rebuild" />
+            Show name &amp; date line
+        </label>
+        <label>
+            <input type="checkbox" @bind="_showAnswerKey" />
+            Print answer key
+        </label>
+    </div>
+
+    <div class="control-group control-row">
+        <label>
+            Seed
+            <input type="number" @bind="_seed" @bind:after="Rebuild" />
+        </label>
+        <button type="button" @onclick="ShuffleSeed">Shuffle</button>
+    </div>
+
+    <div class="control-group control-row">
+        <button type="button" @onclick="Print">Print</button>
+        <button type="button" @onclick="CopyLink">Copy link</button>
+    </div>
+</div>
+
+<WorksheetSheet Worksheet="_worksheet" />
+@if (_showAnswerKey)
+{
+    <AnswerKeySheet Worksheet="_worksheet" />
+}
+
+@code {
+    private static readonly int[] SelectableTables = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+    private readonly HashSet<int> _tables = [];
+    private int _min;
+    private int _max;
+    private int _count;
+    private int _seed;
+    private ProblemOrder _order;
+    private string _title = string.Empty;
+    private bool _showNameAndDate;
+    private bool _showAnswerKey;
+
+    private Worksheet _worksheet = default!;
+    private string? _error;
+    private IJSObjectReference? _module;
+
+    protected override void OnInitialized()
+    {
+        var parsed = QueryHelpers.ParseQuery(new Uri(Nav.Uri).Query);
+        var values = parsed.ToDictionary(pair => pair.Key, pair => (string?)pair.Value.ToString());
+
+        if (!WorksheetSpec.TryParse(values, out var spec, out _error))
+        {
+            spec = WorksheetSpec.Default;
+        }
+
+        _tables.Clear();
+        foreach (var table in spec.Tables)
+        {
+            _tables.Add(table);
+        }
+
+        _min = spec.MultiplierMin;
+        _max = spec.MultiplierMax;
+        _count = spec.ProblemCount;
+        _order = spec.Order;
+        _seed = spec.Seed;
+        _title = spec.Title;
+        _showNameAndDate = spec.ShowNameAndDate;
+
+        _worksheet = WorksheetGenerator.Generate(spec);
+    }
+
+    private void ToggleTable(int table, bool selected)
+    {
+        if (selected)
+        {
+            _tables.Add(table);
+        }
+        else
+        {
+            _tables.Remove(table);
+        }
+
+        Rebuild();
+    }
+
+    private void SetOrder(ProblemOrder order)
+    {
+        _order = order;
+        Rebuild();
+    }
+
+    private void ShuffleSeed()
+    {
+        _seed = Random.Shared.Next();
+        Rebuild();
+    }
+
+    private void Rebuild()
+    {
+        if (_tables.Count == 0)
+        {
+            _error = "Pick at least one table.";
+            return;
+        }
+
+        var values = new Dictionary<string, string?>
+        {
+            ["tables"] = string.Join(',', _tables.OrderBy(table => table)),
+            ["min"] = _min.ToString(CultureInfo.InvariantCulture),
+            ["max"] = _max.ToString(CultureInfo.InvariantCulture),
+            ["count"] = _count.ToString(CultureInfo.InvariantCulture),
+            ["order"] = _order.ToString(),
+            ["seed"] = _seed.ToString(CultureInfo.InvariantCulture),
+            ["title"] = _title,
+            ["names"] = _showNameAndDate ? "true" : "false",
+        };
+
+        if (WorksheetSpec.TryParse(values, out var spec, out _error))
+        {
+            _worksheet = WorksheetGenerator.Generate(spec);
+        }
+    }
+
+    private async Task Print()
+    {
+        var module = await Module();
+        await module.InvokeVoidAsync("printPage");
+    }
+
+    private async Task CopyLink()
+    {
+        var pairs = _worksheet.Spec.ToQuery()
+            .Select(pair => new KeyValuePair<string, string?>(pair.Key, pair.Value));
+        var url = Nav.BaseUri + "multiplication" + QueryHelpers.AddQueryString(string.Empty, pairs);
+
+        var module = await Module();
+        await module.InvokeVoidAsync("copyText", url);
+        Nav.NavigateTo(url, forceLoad: false, replace: true);
+    }
+
+    private async ValueTask<IJSObjectReference> Module()
+        => _module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/print.js");
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is not null)
+        {
+            await _module.DisposeAsync();
+        }
+    }
+}

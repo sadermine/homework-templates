@@ -1,0 +1,109 @@
+.sheet {
+    box-sizing: border-box;
+    max-width: 210mm;
+    margin: 1.5rem auto;
+    padding: 18mm 16mm;
+    background: #fff;
+    color: #1a1a1a;
+    border: 1px solid #d4d4d4;
+    border-radius: 4px;
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.12);
+}
+
+.sheet-header {
+    margin-bottom: 10mm;
+}
+
+.sheet-title {
+    margin: 0 0 5mm;
+    font-size: 1.5rem;
+}
+
+.name-date {
+    display: flex;
+    gap: 14mm;
+    margin: 0;
+    font-size: 1rem;
+}
+
+.name-date .write-in {
+    display: inline-block;
+    min-width: 45mm;
+    border-bottom: 1px solid #000;
+}
+
+.problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10mm 8mm;
+}
+
+.problem {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+    font-size: 1.1rem;
+    white-space: nowrap;
+}
+
+.problem-text {
+    min-width: 5em;
+    text-align: right;
+}
+
+.answer-blank {
+    display: inline-block;
+    min-width: 3.5em;
+    border-bottom: 1px solid #000;
+}
+
+.answer-blank::after {
+    content: "\00a0";
+}
+
+.sheet-footer {
+    margin-top: 12mm;
+    font-size: 0.75rem;
+    color: #666;
+}
+
+@media print {
+    @page {
+        size: A4;
+        margin: 14mm;
+    }
+
+    .no-print,
+    .controls,
+    .sidebar,
+    .top-row {
+        display: none !important;
+    }
+
+    body {
+        background: #fff;
+    }
+
+    .page main .content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .sheet {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        color: #000;
+    }
+
+    .sheet-footer {
+        color: #000;
+    }
+
+    .answer-key-sheet {
+        page-break-before: always;
+    }
+}
