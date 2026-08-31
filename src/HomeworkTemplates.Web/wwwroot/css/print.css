@@ -71,6 +71,10 @@
         max-width: none;
         width: var(--sheet-width, 215.9mm);
     }
+
+    .preview-hidden {
+        display: none;
+    }
 }
 
 .problem {

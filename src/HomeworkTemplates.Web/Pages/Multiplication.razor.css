@@ -82,3 +82,27 @@ legend {
     color: #b00020;
     font-weight: 600;
 }
+
+.preview-pager {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 0 0 1rem;
+}
+
+.preview-pager-page {
+    min-width: 2rem;
+    padding: 0.2rem 0.4rem;
+    border: 1px solid #d5d5d5;
+    border-radius: 4px;
+    background: #fff;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.preview-pager-page.is-current {
+    border-color: #333;
+    background: #333;
+    color: #fff;
+}

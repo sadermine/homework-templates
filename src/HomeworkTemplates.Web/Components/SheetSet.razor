@@ -6,7 +6,8 @@
 
 @foreach (var page in Worksheet.Pages)
 {
-    <section class="sheet @(ShowAnswers ? "answer-key-sheet" : "worksheet-sheet")" style="@SheetStyle.For(spec.Page)">
+    var hiddenInPreview = VisiblePage != 0 && page.Number != VisiblePage;
+    <section class="sheet @(ShowAnswers ? "answer-key-sheet" : "worksheet-sheet") @(hiddenInPreview ? "preview-hidden" : null)" style="@SheetStyle.For(spec.Page)">
         <header class="sheet-header">
             <h2 class="sheet-title">@(ShowAnswers ? $"Answer Key for {spec.Title}" : spec.Title)</h2>
             @if (!ShowAnswers && spec.ShowNameAndDate && page.Number == 1)
@@ -47,4 +48,7 @@
 
     [Parameter]
     public bool ShowAnswers { get; set; }
+
+    [Parameter]
+    public int VisiblePage { get; set; }
 }
