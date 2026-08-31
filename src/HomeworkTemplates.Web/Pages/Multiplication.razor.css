@@ -83,6 +83,15 @@ legend {
     font-weight: 600;
 }
 
+.copy-status {
+    font-size: 0.85rem;
+    color: #2e7d32;
+}
+
+.copy-status-error {
+    color: #b00020;
+}
+
 .preview-pager {
     display: flex;
     flex-wrap: wrap;
