@@ -50,9 +50,13 @@
     align-items: stretch;
 }
 
+/* Every cell carries all four borders, so a ragged last page still closes each
+   filled column. The negative margins pull each cell 1px over its right and
+   bottom neighbours so shared edges overlap at 1px instead of stacking to 2px. */
 .problem-grid.ruled .problem {
     align-items: center;
-    border: 0.5px solid #999;
+    border: 1px solid #999;
+    margin: 0 -1px -1px 0;
 }
 
 /* On screen the sheet keeps its true paper width and the preview scrolls, so a
