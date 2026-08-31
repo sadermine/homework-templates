@@ -94,6 +94,18 @@ public class PageLayoutTests
         Assert.True(landscape.WidthMm > landscape.HeightMm);
     }
 
+    [Theory]
+    [InlineData(PaperSize.Letter, PageOrientation.Portrait, 42)]
+    [InlineData(PaperSize.Letter, PageOrientation.Landscape, 50)]
+    [InlineData(PaperSize.A5, PageOrientation.Portrait, 18)]
+    public void Problems_per_page_is_columns_times_rows(PaperSize paper, PageOrientation orientation, int expected)
+    {
+        var page = PageLayout.Measure(paper, orientation);
+
+        Assert.Equal(page.Columns * page.Rows, page.ProblemsPerPage);
+        Assert.Equal(expected, page.ProblemsPerPage);
+    }
+
     [Fact]
     public void Every_paper_size_has_geometry_in_both_orientations()
     {

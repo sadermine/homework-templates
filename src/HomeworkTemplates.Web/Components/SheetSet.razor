@@ -1,0 +1,49 @@
+@{
+    var spec = Worksheet.Spec;
+    var pageCount = Worksheet.Pages.Count;
+}
+
+@foreach (var page in Worksheet.Pages)
+{
+    <section class="sheet @(ShowAnswers ? "answer-key-sheet" : "worksheet-sheet")" style="@SheetStyle.For(spec.Page)">
+        <header class="sheet-header">
+            <h2 class="sheet-title">@(ShowAnswers ? $"Answer Key for {spec.Title}" : spec.Title)</h2>
+            @if (!ShowAnswers && spec.ShowNameAndDate && page.Number == 1)
+            {
+                <p class="name-date">
+                    <span>Name: <span class="write-in"></span></span>
+                    <span>Date: <span class="write-in"></span></span>
+                </p>
+            }
+        </header>
+
+        <div class="problem-grid" style="@SheetStyle.GridColumns(spec.Page)">
+            @foreach (var problem in page.Problems)
+            {
+                <div class="problem">
+                    @if (ShowAnswers)
+                    {
+                        <span class="problem-text">@problem.Left &times; @problem.Right = @problem.Answer</span>
+                    }
+                    else
+                    {
+                        <span class="problem-text">@problem.Left &times; @problem.Right =</span>
+                        <span class="answer-blank"></span>
+                    }
+                </div>
+            }
+        </div>
+
+        <footer class="sheet-footer">
+            Seed @spec.Seed@(pageCount > 1 ? $" · Page {page.Number} of {pageCount}" : "")
+        </footer>
+    </section>
+}
+
+@code {
+    [Parameter]
+    public Worksheet Worksheet { get; set; } = default!;
+
+    [Parameter]
+    public bool ShowAnswers { get; set; }
+}
