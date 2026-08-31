@@ -34,9 +34,11 @@
     border-bottom: 1px solid #000;
 }
 
+/* grid-template-rows/columns and column flow come from SheetStyle.GridTemplate:
+   a fixed row count per column so a short last page keeps full-height columns
+   and simply leaves its trailing columns empty. */
 .problem-grid {
     display: grid;
-    grid-auto-rows: var(--row-height, 14.21675mm);
     row-gap: 0;
     column-gap: var(--column-gap, 8mm);
     align-items: center;

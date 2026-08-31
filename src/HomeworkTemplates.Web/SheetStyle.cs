@@ -11,6 +11,6 @@ internal static class SheetStyle
     public static string For(PageMetrics page) => FormattableString.Invariant(
         $"--sheet-width: {page.WidthMm}mm; --page-margin: {PageLayout.MarginMm}mm; --column-gap: {PageLayout.ColumnGapMm}mm; --row-height: {PageLayout.RowHeightMm:0.#####}mm");
 
-    public static string GridColumns(PageMetrics page) => FormattableString.Invariant(
-        $"grid-template-columns: repeat({page.Columns}, minmax(0, 1fr))");
+    public static string GridTemplate(PageMetrics page) => FormattableString.Invariant(
+        $"grid-template-columns: repeat({page.Columns}, minmax(0, 1fr)); grid-template-rows: repeat({page.Rows}, var(--row-height)); grid-auto-flow: column");
 }

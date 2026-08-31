@@ -6,7 +6,7 @@ public sealed record WorksheetSpec(
     IReadOnlyList<int> Tables,
     int MultiplierMin,
     int MultiplierMax,
-    int ProblemCount,
+    int? ProblemCount,
     ProblemOrder Order,
     PaperSize Paper,
     PageOrientation Orientation,
@@ -17,14 +17,16 @@ public sealed record WorksheetSpec(
     public const int MinFactor = 1;
     public const int MaxFactor = 20;
     public const int MinProblemCount = 1;
-    public const int MaxProblemCount = 100;
     public const int MaxTitleLength = 80;
+
+    /// <summary>Distinct problems the selected tables and multiplier range produce.</summary>
+    public int AvailableProblems => Tables.Count * Math.Max(0, MultiplierMax - MultiplierMin + 1);
 
     public static WorksheetSpec Default { get; } = new(
         Tables: new[] { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 },
         MultiplierMin: 1,
         MultiplierMax: 10,
-        ProblemCount: 30,
+        ProblemCount: null,
         Order: ProblemOrder.Sequential,
         Paper: PaperSize.Letter,
         Orientation: PageOrientation.Landscape,
@@ -94,15 +96,27 @@ public sealed record WorksheetSpec(
             return false;
         }
 
-        if (!TryReadInt(values, "count", Default.ProblemCount, out var count, out error))
+        int? count = Default.ProblemCount;
+        if (values.TryGetValue("count", out var countRaw) && !string.IsNullOrWhiteSpace(countRaw))
         {
-            return false;
-        }
-
-        if (count < MinProblemCount || count > MaxProblemCount)
-        {
-            error = $"Problem count must be {MinProblemCount}-{MaxProblemCount}.";
-            return false;
+            if (string.Equals(countRaw.Trim(), "all", StringComparison.OrdinalIgnoreCase))
+            {
+                count = null;
+            }
+            else if (!int.TryParse(countRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var typed))
+            {
+                error = $"'{countRaw}' is not a whole number.";
+                return false;
+            }
+            else if (typed < MinProblemCount)
+            {
+                error = $"Problem count must be {MinProblemCount} or more.";
+                return false;
+            }
+            else
+            {
+                count = Math.Min(typed, tables.Count * (max - min + 1));
+            }
         }
 
         var order = Default.Order;
@@ -178,7 +192,7 @@ public sealed record WorksheetSpec(
         new KeyValuePair<string, string>("tables", string.Join(',', Tables)),
         new KeyValuePair<string, string>("min", MultiplierMin.ToString(CultureInfo.InvariantCulture)),
         new KeyValuePair<string, string>("max", MultiplierMax.ToString(CultureInfo.InvariantCulture)),
-        new KeyValuePair<string, string>("count", ProblemCount.ToString(CultureInfo.InvariantCulture)),
+        new KeyValuePair<string, string>("count", ProblemCount?.ToString(CultureInfo.InvariantCulture) ?? "all"),
         new KeyValuePair<string, string>("order", Order.ToString()),
         new KeyValuePair<string, string>("paper", Paper.ToString()),
         new KeyValuePair<string, string>("orient", Orientation.ToString()),

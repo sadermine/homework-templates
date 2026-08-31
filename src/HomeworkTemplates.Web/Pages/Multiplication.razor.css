@@ -54,6 +54,11 @@
     font-weight: 600;
 }
 
+.count-available {
+    font-size: 0.85rem;
+    color: #6b6b6b;
+}
+
 legend {
     margin-bottom: 0.35rem;
     padding: 0;

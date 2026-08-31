@@ -46,10 +46,25 @@
             Multiplier max
             <input type="number" min="1" max="20" @bind="_max" @bind:after="Rebuild" />
         </label>
+    </div>
+
+    <div class="control-group control-row">
+        <span class="group-label">Problems</span>
         <label>
-            Problems
-            <input type="number" min="1" max="100" @bind="_count" @bind:after="Rebuild" />
+            <input type="radio" name="count"
+                   checked="@_allProblems"
+                   @onchange="@(() => SetAllProblems(true))" />
+            All
         </label>
+        <label>
+            <input type="radio" name="count"
+                   checked="@(!_allProblems)"
+                   @onchange="@(() => SetAllProblems(false))" />
+            Show only
+        </label>
+        <input type="number" min="1" max="@Available" disabled="@_allProblems"
+               @bind="_count" @bind:after="Rebuild" />
+        <span class="count-available">max @Available</span>
     </div>
 
     <div class="control-group control-row">
@@ -134,10 +149,13 @@
 @code {
     private static readonly int[] SelectableTables = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
+    private const int DefaultShownCount = 30;
+
     private readonly HashSet<int> _tables = [];
     private int _min;
     private int _max;
     private int _count;
+    private bool _allProblems;
     private int _seed;
     private ProblemOrder _order;
     private PaperSize _paper;
@@ -151,6 +169,8 @@
     private IJSObjectReference? _module;
 
     private PageMetrics Page => _worksheet.Spec.Page;
+
+    private int Available => _worksheet.Spec.AvailableProblems;
 
     private static string Mm(double millimetres) =>
         FormattableString.Invariant($"{millimetres}mm");
@@ -173,7 +193,8 @@
 
         _min = spec.MultiplierMin;
         _max = spec.MultiplierMax;
-        _count = spec.ProblemCount;
+        _allProblems = spec.ProblemCount is null;
+        _count = spec.ProblemCount ?? DefaultShownCount;
         _order = spec.Order;
         _paper = spec.Paper;
         _orientation = spec.Orientation;
@@ -204,6 +225,12 @@
         Rebuild();
     }
 
+    private void SetAllProblems(bool all)
+    {
+        _allProblems = all;
+        Rebuild();
+    }
+
     private void SetOrientation(PageOrientation orientation)
     {
         _orientation = orientation;
@@ -226,7 +253,8 @@
 
         var candidate = new WorksheetSpec(
             _tables.OrderBy(table => table).ToArray(),
-            _min, _max, _count, _order, _paper, _orientation, _seed, _title, _showNameAndDate);
+            _min, _max, _allProblems ? null : _count,
+            _order, _paper, _orientation, _seed, _title, _showNameAndDate);
 
         var values = candidate.ToQuery()
             .ToDictionary(pair => pair.Key, pair => (string?)pair.Value);
@@ -234,6 +262,10 @@
         if (WorksheetSpec.TryParse(values, out var spec, out _error))
         {
             _worksheet = WorksheetGenerator.Generate(spec);
+            if (spec.ProblemCount is int clamped)
+            {
+                _count = clamped;
+            }
         }
     }
 

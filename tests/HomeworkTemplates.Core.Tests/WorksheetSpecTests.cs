@@ -26,13 +26,51 @@ public class WorksheetSpecTests
     }
 
     [Fact]
-    public void Rejects_a_problem_count_above_the_maximum()
+    public void Reads_all_as_a_null_problem_count()
     {
-        var ok = WorksheetSpec.TryParse(
-            Query(("count", (WorksheetSpec.MaxProblemCount + 1).ToString())), out _, out var error);
+        var ok = WorksheetSpec.TryParse(Query(("count", "all")), out var spec, out var error);
+
+        Assert.True(ok);
+        Assert.Null(error);
+        Assert.Null(spec.ProblemCount);
+    }
+
+    [Fact]
+    public void Rejects_a_problem_count_below_one()
+    {
+        var ok = WorksheetSpec.TryParse(Query(("count", "0")), out _, out var error);
 
         Assert.False(ok);
         Assert.NotNull(error);
+    }
+
+    [Fact]
+    public void Clamps_a_problem_count_above_what_the_tables_can_produce()
+    {
+        // tables 2,3 x multipliers 1..5 is 10 distinct problems.
+        var ok = WorksheetSpec.TryParse(
+            Query(("tables", "2,3"), ("min", "1"), ("max", "5"), ("count", "999")),
+            out var spec, out var error);
+
+        Assert.True(ok);
+        Assert.Null(error);
+        Assert.Equal(10, spec.ProblemCount);
+    }
+
+    [Fact]
+    public void An_all_spec_round_trips_through_its_query_string()
+    {
+        var all = WorksheetSpec.Default with { ProblemCount = null };
+        var query = all.ToQuery().ToDictionary(pair => pair.Key, pair => (string?)pair.Value);
+
+        Assert.True(WorksheetSpec.TryParse(query, out var spec, out _));
+        Assert.Null(spec.ProblemCount);
+    }
+
+    [Fact]
+    public void Defaults_to_showing_all_problems()
+    {
+        Assert.Null(WorksheetSpec.Default.ProblemCount);
     }
 
     [Fact]
