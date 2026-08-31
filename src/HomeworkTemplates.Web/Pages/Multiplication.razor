@@ -150,6 +150,7 @@
 @if (_tables.Count > 0 && _worksheet.Pages.Count > 1)
 {
     <nav class="preview-pager no-print" aria-label="Preview pages">
+        <span class="preview-pager-label">Page:</span>
         @for (var n = 1; n <= _worksheet.Pages.Count; n++)
         {
             var page = n;
