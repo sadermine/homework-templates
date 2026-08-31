@@ -16,17 +16,31 @@
     border: 0;
 }
 
+/* Mobile-first: stacked by default, since a row mixing a label, radios, a number
+   input, and a hint (e.g. the Problems group) wraps into uneven, raggedly-aligned
+   lines below ~360px — align-items:end only aligns items within one wrapped line,
+   not across them. .table-options is exempt: its items are all the same shape
+   (checkbox + one or two digits), so it reflows cleanly at any width and doesn't
+   have this problem. */
 .control-row {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
     gap: 0.75rem 1.25rem;
-    align-items: end;
 }
 
 .table-options {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem 1rem;
+}
+
+@media (min-width: 641px) {
+    .control-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: end;
+    }
 }
 
 .controls label {
