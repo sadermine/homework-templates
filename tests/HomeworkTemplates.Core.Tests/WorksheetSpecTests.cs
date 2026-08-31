@@ -66,11 +66,11 @@ public class WorksheetSpecTests
     [Fact]
     public void Orientation_survives_a_query_round_trip()
     {
-        var landscape = WorksheetSpec.Default with { Orientation = PageOrientation.Landscape };
-        var query = landscape.ToQuery().ToDictionary(pair => pair.Key, pair => (string?)pair.Value);
+        var portrait = WorksheetSpec.Default with { Orientation = PageOrientation.Portrait };
+        var query = portrait.ToQuery().ToDictionary(pair => pair.Key, pair => (string?)pair.Value);
 
         Assert.True(WorksheetSpec.TryParse(query, out var spec, out _));
-        Assert.Equal(PageOrientation.Landscape, spec.Orientation);
+        Assert.Equal(PageOrientation.Portrait, spec.Orientation);
     }
 
     [Fact]
@@ -92,6 +92,24 @@ public class WorksheetSpecTests
     public void Defaults_to_sequential_order()
     {
         Assert.Equal(ProblemOrder.Sequential, WorksheetSpec.Default.Order);
+    }
+
+    [Fact]
+    public void Defaults_to_landscape_orientation()
+    {
+        Assert.Equal(PageOrientation.Landscape, WorksheetSpec.Default.Orientation);
+    }
+
+    [Fact]
+    public void Defaults_to_a_multiplier_max_of_ten()
+    {
+        Assert.Equal(10, WorksheetSpec.Default.MultiplierMax);
+    }
+
+    [Fact]
+    public void Defaults_to_tables_two_through_eleven()
+    {
+        Assert.Equal(new[] { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, WorksheetSpec.Default.Tables);
     }
 
     [Fact]

@@ -95,7 +95,7 @@
 
     <div class="control-group">
         <label class="block">
-            Title
+            <span class="group-label">Title</span>
             <input type="text" maxlength="80" @bind="_title" @bind:after="Rebuild" />
         </label>
     </div>
@@ -120,7 +120,7 @@
     </div>
 
     <div class="control-group control-row">
-        <button type="button" @onclick="Print">Print</button>
+        <button type="button" @onclick="Print" disabled="@(_tables.Count == 0)">Print</button>
         <button type="button" @onclick="CopyLink">Copy link</button>
     </div>
 </div>
@@ -132,7 +132,7 @@
 }
 
 @code {
-    private static readonly int[] SelectableTables = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    private static readonly int[] SelectableTables = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
     private readonly HashSet<int> _tables = [];
     private int _min;
