@@ -140,10 +140,13 @@
     </div>
 </div>
 
-<SheetSet Worksheet="_worksheet" />
-@if (_showAnswerKey)
+@if (_tables.Count > 0)
 {
-    <SheetSet Worksheet="_worksheet" ShowAnswers="true" />
+    <SheetSet Worksheet="_worksheet" />
+    @if (_showAnswerKey)
+    {
+        <SheetSet Worksheet="_worksheet" ShowAnswers="true" />
+    }
 }
 
 @code {
