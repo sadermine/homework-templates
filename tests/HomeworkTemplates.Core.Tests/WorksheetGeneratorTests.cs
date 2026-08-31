@@ -23,7 +23,8 @@ public class WorksheetGeneratorTests
             orientation,
             seed,
             "Test",
-            ShowNameAndDate: true);
+            ShowNameAndDate: true,
+            ShowGridLines: false);
 
     [Fact]
     public void Generate_returns_the_same_sequence_for_an_equal_spec()

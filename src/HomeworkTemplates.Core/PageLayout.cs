@@ -15,7 +15,14 @@ public readonly record struct PageMetrics(
 public static class PageLayout
 {
     public const double MarginMm = 14;
-    public const double ColumnGapMm = 8;
+
+    /// <summary>
+    /// Horizontal padding inside each problem cell. Cells abut with no column gap, so this
+    /// padding is both the whitespace between one problem and the next and the inset a cell
+    /// border sits at. Mirrored into <c>wwwroot/css/print.css</c> as <c>--cell-padding</c>;
+    /// drift there changes column fit with nothing failing.
+    /// </summary>
+    public const double CellPaddingMm = 3;
 
     private const double MmPerPx = 25.4 / 96;
 
@@ -63,8 +70,9 @@ public static class PageLayout
     /// width formula yields Letter's specified 3 portrait / 5 landscape. The other
     /// sizes hold Letter's implied column pitch. Row counts, by contrast, are derived
     /// from the Letter-landscape anchor in <see cref="RowHeightMm"/>.
-    /// <see cref="PageMetrics.ColumnWidthMm"/> is returned so a test can assert every
-    /// column still fits a problem. A new <see cref="PaperSize"/> without an arm here
+    /// <see cref="PageMetrics.ColumnWidthMm"/> is the pitch less both cell paddings, the
+    /// space a problem actually has, and is returned so a test can assert every column
+    /// still fits one. A new <see cref="PaperSize"/> without an arm here
     /// fails PageLayoutTests, not the build.
     /// </summary>
     public static PageMetrics Measure(PaperSize paper, PageOrientation orientation)
@@ -85,7 +93,7 @@ public static class PageLayout
         var columns = landscape ? landscapeColumns : portraitColumns;
 
         var usable = width - (2 * MarginMm);
-        var columnWidth = (usable - (ColumnGapMm * (columns - 1))) / columns;
+        var columnWidth = (usable / columns) - (2 * CellPaddingMm);
 
         var gridHeight = height - (2 * MarginMm) - SheetChromeMm;
         var rows = Math.Max(1, (int)Math.Floor((gridHeight / RowHeightMm) + RowFitTolerance));

@@ -159,4 +159,29 @@ public class WorksheetSpecTests
         Assert.True(WorksheetSpec.TryParse(query, out var spec, out _));
         Assert.Equal(PaperSize.Legal, spec.Paper);
     }
+
+    [Fact]
+    public void Defaults_to_grid_lines_off()
+    {
+        Assert.False(WorksheetSpec.Default.ShowGridLines);
+    }
+
+    [Fact]
+    public void Grid_lines_flag_survives_a_query_round_trip()
+    {
+        var ruled = WorksheetSpec.Default with { ShowGridLines = true };
+        var query = ruled.ToQuery().ToDictionary(pair => pair.Key, pair => (string?)pair.Value);
+
+        Assert.True(WorksheetSpec.TryParse(query, out var spec, out _));
+        Assert.True(spec.ShowGridLines);
+    }
+
+    [Fact]
+    public void Rejects_a_non_boolean_grid_value()
+    {
+        var ok = WorksheetSpec.TryParse(Query(("grid", "yes")), out _, out var error);
+
+        Assert.False(ok);
+        Assert.NotNull(error);
+    }
 }

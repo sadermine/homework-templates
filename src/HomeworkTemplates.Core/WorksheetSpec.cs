@@ -12,7 +12,8 @@ public sealed record WorksheetSpec(
     PageOrientation Orientation,
     int Seed,
     string Title,
-    bool ShowNameAndDate)
+    bool ShowNameAndDate,
+    bool ShowGridLines)
 {
     public const int MinFactor = 1;
     public const int MaxFactor = 20;
@@ -32,7 +33,8 @@ public sealed record WorksheetSpec(
         Orientation: PageOrientation.Landscape,
         Seed: 1,
         Title: "Multiplication Practice",
-        ShowNameAndDate: true);
+        ShowNameAndDate: true,
+        ShowGridLines: false);
 
     /// <summary>
     /// Parses a spec from untrusted string values, typically a URL query string.
@@ -179,7 +181,17 @@ public sealed record WorksheetSpec(
             }
         }
 
-        spec = new WorksheetSpec(tables, min, max, count, order, paper, orientation, seed, title, showNameAndDate);
+        var showGridLines = Default.ShowGridLines;
+        if (values.TryGetValue("grid", out var gridRaw) && !string.IsNullOrWhiteSpace(gridRaw))
+        {
+            if (!bool.TryParse(gridRaw, out showGridLines))
+            {
+                error = $"'{gridRaw}' is not true or false.";
+                return false;
+            }
+        }
+
+        spec = new WorksheetSpec(tables, min, max, count, order, paper, orientation, seed, title, showNameAndDate, showGridLines);
         return true;
     }
 
@@ -199,6 +211,7 @@ public sealed record WorksheetSpec(
         new KeyValuePair<string, string>("seed", Seed.ToString(CultureInfo.InvariantCulture)),
         new KeyValuePair<string, string>("title", Title),
         new KeyValuePair<string, string>("names", ShowNameAndDate ? "true" : "false"),
+        new KeyValuePair<string, string>("grid", ShowGridLines ? "true" : "false"),
     };
 
     private static bool TryReadInt(

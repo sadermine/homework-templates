@@ -39,9 +39,20 @@
    and simply leaves its trailing columns empty. */
 .problem-grid {
     display: grid;
-    row-gap: 0;
-    column-gap: var(--column-gap, 8mm);
+    gap: 0;
     align-items: center;
+}
+
+/* The grid centres cells in taller row tracks by default, so stretch them to the
+   full track height here. Without it the ruled borders below would not meet between
+   rows. Column edges already meet, the gap is zero and the spacing is cell padding. */
+.problem-grid.ruled {
+    align-items: stretch;
+}
+
+.problem-grid.ruled .problem {
+    align-items: center;
+    border: 0.5px solid #999;
 }
 
 /* On screen the sheet keeps its true paper width and the preview scrolls, so a
@@ -59,9 +70,11 @@
 }
 
 .problem {
+    box-sizing: border-box;
     display: flex;
     align-items: baseline;
     gap: 0.5em;
+    padding: 0 var(--cell-padding, 3mm);
     font-size: 1.1rem;
     white-space: nowrap;
     break-inside: avoid;
