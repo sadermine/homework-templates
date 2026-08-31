@@ -8,7 +8,7 @@ public class WorksheetGeneratorTests
         int[]? tables = null,
         int min = 1,
         int max = 12,
-        int count = 30,
+        int? count = 30,
         ProblemOrder order = ProblemOrder.Shuffled,
         PaperSize paper = PaperSize.Letter,
         PageOrientation orientation = PageOrientation.Portrait,
@@ -43,11 +43,43 @@ public class WorksheetGeneratorTests
     }
 
     [Fact]
-    public void Problem_count_matches_the_spec_when_it_exceeds_the_pool()
+    public void Problem_count_clamps_to_the_pool_when_the_spec_asks_for_more()
     {
         var worksheet = WorksheetGenerator.Generate(Spec(tables: new[] { 2 }, min: 1, max: 3, count: 10));
 
-        Assert.Equal(10, worksheet.Problems.Count());
+        Assert.Equal(3, worksheet.Problems.Count());
+    }
+
+    [Fact]
+    public void A_null_count_yields_every_distinct_problem_once()
+    {
+        var spec = Spec(
+            tables: new[] { 2, 3, 4 }, min: 1, max: 12, count: null, order: ProblemOrder.Sequential);
+
+        var worksheet = WorksheetGenerator.Generate(spec);
+
+        var expected =
+            from left in new[] { 2, 3, 4 }
+            from right in Enumerable.Range(1, 12)
+            select new Problem(left, right);
+
+        Assert.Equal(36, worksheet.Problems.Count());
+        Assert.Equal(expected, worksheet.Problems.OrderBy(p => p.Left).ThenBy(p => p.Right));
+    }
+
+    [Fact]
+    public void Over_count_no_longer_repeats_a_table_across_pages()
+    {
+        // Issue #17: tables 2-10 x multipliers 1-10 is 90 distinct problems. A count of 100
+        // used to refill the pool and print the 2s table a second time.
+        var spec = Spec(
+            tables: new[] { 2, 3, 4, 5, 6, 7, 8, 9, 10 }, min: 1, max: 10, count: 100,
+            paper: PaperSize.Letter, orientation: PageOrientation.Landscape, order: ProblemOrder.Sequential);
+
+        var worksheet = WorksheetGenerator.Generate(spec);
+
+        Assert.Equal(new[] { 50, 40 }, worksheet.Pages.Select(page => page.Problems.Count));
+        Assert.Equal(90, worksheet.Problems.Distinct().Count());
     }
 
     [Theory]
