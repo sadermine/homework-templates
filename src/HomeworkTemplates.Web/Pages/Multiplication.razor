@@ -121,6 +121,10 @@
             Show name &amp; date line
         </label>
         <label>
+            <input type="checkbox" @bind="_showGridLines" @bind:after="Rebuild" />
+            Show grid lines
+        </label>
+        <label>
             <input type="checkbox" @bind="_showAnswerKey" />
             Print answer key
         </label>
@@ -165,6 +169,7 @@
     private PageOrientation _orientation;
     private string _title = string.Empty;
     private bool _showNameAndDate;
+    private bool _showGridLines;
     private bool _showAnswerKey;
 
     private Worksheet _worksheet = default!;
@@ -204,6 +209,7 @@
         _seed = spec.Seed;
         _title = spec.Title;
         _showNameAndDate = spec.ShowNameAndDate;
+        _showGridLines = spec.ShowGridLines;
 
         _worksheet = WorksheetGenerator.Generate(spec);
     }
@@ -257,7 +263,7 @@
         var candidate = new WorksheetSpec(
             _tables.OrderBy(table => table).ToArray(),
             _min, _max, _allProblems ? null : _count,
-            _order, _paper, _orientation, _seed, _title, _showNameAndDate);
+            _order, _paper, _orientation, _seed, _title, _showNameAndDate, _showGridLines);
 
         var values = candidate.ToQuery()
             .ToDictionary(pair => pair.Key, pair => (string?)pair.Value);
