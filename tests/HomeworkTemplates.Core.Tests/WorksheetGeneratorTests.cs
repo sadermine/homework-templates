@@ -39,7 +39,7 @@ public class WorksheetGeneratorTests
     {
         var worksheet = WorksheetGenerator.Generate(Spec(count: 30));
 
-        Assert.Equal(30, worksheet.Problems.Count);
+        Assert.Equal(30, worksheet.Problems.Count());
     }
 
     [Fact]
@@ -47,7 +47,75 @@ public class WorksheetGeneratorTests
     {
         var worksheet = WorksheetGenerator.Generate(Spec(tables: new[] { 2 }, min: 1, max: 3, count: 10));
 
-        Assert.Equal(10, worksheet.Problems.Count);
+        Assert.Equal(10, worksheet.Problems.Count());
+    }
+
+    [Theory]
+    [InlineData(PaperSize.Letter, PageOrientation.Portrait, 100, new[] { 42, 42, 16 })]
+    [InlineData(PaperSize.A5, PageOrientation.Portrait, 30, new[] { 18, 12 })]
+    public void Problems_split_into_pages_that_fill_before_they_spill(
+        PaperSize paper, PageOrientation orientation, int count, int[] expectedSizes)
+    {
+        var worksheet = WorksheetGenerator.Generate(
+            Spec(count: count, paper: paper, orientation: orientation, order: ProblemOrder.Sequential));
+
+        Assert.Equal(expectedSizes, worksheet.Pages.Select(page => page.Problems.Count));
+        Assert.Equal(Enumerable.Range(1, expectedSizes.Length), worksheet.Pages.Select(page => page.Number));
+    }
+
+    [Fact]
+    public void Every_page_before_the_last_is_exactly_one_page_full()
+    {
+        var spec = Spec(count: 100, paper: PaperSize.Letter, orientation: PageOrientation.Portrait);
+        var perPage = spec.Page.ProblemsPerPage;
+
+        var worksheet = WorksheetGenerator.Generate(spec);
+
+        Assert.All(worksheet.Pages.SkipLast(1), page => Assert.Equal(perPage, page.Problems.Count));
+        Assert.True(worksheet.Pages[^1].Problems.Count <= perPage);
+    }
+
+    [Fact]
+    public void Sequential_column_order_restarts_on_each_page()
+    {
+        // Sorted draw is (2,1..12)(3,1..12)(4,1..6). A5 portrait is 2 columns x 9 rows,
+        // so page 1 is the first 18 and page 2 is (3,7..12)(4,1..6), each laid out
+        // column-major against its own slice, not against the whole 30-problem list.
+        var spec = Spec(
+            tables: new[] { 2, 3, 4 }, min: 1, max: 12, count: 30,
+            paper: PaperSize.A5, orientation: PageOrientation.Portrait, order: ProblemOrder.Sequential);
+
+        var worksheet = WorksheetGenerator.Generate(spec);
+
+        Problem[] pageTwo =
+        [
+            new(3, 7), new(4, 1),
+            new(3, 8), new(4, 2),
+            new(3, 9), new(4, 3),
+            new(3, 10), new(4, 4),
+            new(3, 11), new(4, 5),
+            new(3, 12), new(4, 6),
+        ];
+        Assert.Equal(pageTwo, worksheet.Pages[1].Problems);
+    }
+
+    [Fact]
+    public void Pagination_neither_drops_nor_duplicates_a_problem()
+    {
+        var spec = Spec(
+            tables: new[] { 2, 3, 4 }, min: 1, max: 12, count: 30,
+            paper: PaperSize.A5, orientation: PageOrientation.Portrait, order: ProblemOrder.Sequential);
+
+        var worksheet = WorksheetGenerator.Generate(spec);
+
+        var sortedPool =
+            from left in new[] { 2, 3, 4 }
+            from right in Enumerable.Range(1, 12)
+            select new Problem(left, right);
+
+        Assert.Equal(
+            sortedPool.Take(30),
+            worksheet.Problems.OrderBy(p => p.Left).ThenBy(p => p.Right));
     }
 
     [Fact]

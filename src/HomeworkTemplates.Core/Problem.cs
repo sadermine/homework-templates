@@ -26,4 +26,11 @@ public readonly record struct Problem(int Left, int Right)
     public int Answer => Left * Right;
 }
 
-public sealed record Worksheet(WorksheetSpec Spec, IReadOnlyList<Problem> Problems);
+/// <summary>One printed page of a worksheet. <paramref name="Number"/> is 1-based.</summary>
+public sealed record WorksheetPage(int Number, IReadOnlyList<Problem> Problems);
+
+public sealed record Worksheet(WorksheetSpec Spec, IReadOnlyList<WorksheetPage> Pages)
+{
+    /// <summary>Every problem across every page, in print order.</summary>
+    public IEnumerable<Problem> Problems => Pages.SelectMany(page => page.Problems);
+}

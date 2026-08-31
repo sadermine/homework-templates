@@ -21,7 +21,7 @@ public static class WorksheetGenerator
         // multiplier range, leaving nothing to draw from.
         if (pool.Count == 0)
         {
-            return new Worksheet(spec, problems);
+            return new Worksheet(spec, [new WorksheetPage(1, problems)]);
         }
 
         void Arrange()
@@ -59,10 +59,15 @@ public static class WorksheetGenerator
             }
         }
 
-        var ordered = spec.Order == ProblemOrder.Sequential
-            ? ProblemLayout.ColumnMajor(problems, spec.Page.Columns)
-            : problems;
+        var pages = problems
+            .Chunk(spec.Page.ProblemsPerPage)
+            .Select((chunk, index) => new WorksheetPage(
+                index + 1,
+                spec.Order == ProblemOrder.Sequential
+                    ? ProblemLayout.ColumnMajor(chunk, spec.Page.Columns)
+                    : chunk))
+            .ToArray();
 
-        return new Worksheet(spec, ordered);
+        return new Worksheet(spec, pages);
     }
 }

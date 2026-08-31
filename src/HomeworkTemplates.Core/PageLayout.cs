@@ -6,7 +6,11 @@ public readonly record struct PageMetrics(
     double HeightMm,
     int Columns,
     double ColumnWidthMm,
-    int Rows);
+    int Rows)
+{
+    /// <summary>Problems that fill one printed page, the chunk size worksheet pagination splits on.</summary>
+    public int ProblemsPerPage => Columns * Rows;
+}
 
 public static class PageLayout
 {
@@ -24,9 +28,11 @@ public static class PageLayout
     /// <summary>
     /// Vertical space the sheet header and footer take from the page, mirrored from
     /// <c>wwwroot/css/print.css</c>. Drift here changes printed output with nothing failing,
-    /// so the CSS rules carry a comment pointing back to this constant. The budget assumes a
-    /// single-line title; an 80-character title wraps on narrow paper and steals rows, which
-    /// is left for issue #9's pagination to absorb.
+    /// so the CSS rules carry a comment pointing back to this constant. The budget always
+    /// counts the Name/Date line, even though that line only renders on page 1 of a worksheet
+    /// and only when <see cref="WorksheetSpec.ShowNameAndDate"/> is set, so every other page
+    /// under-fills by one line rather than risking an overflow. A title long enough to wrap on
+    /// narrow paper still steals a row; pagination pushes the lost problems to the next page.
     /// </summary>
     public const double SheetChromeMm =
         1.5 * 1.2 * 16 * MmPerPx   // .sheet-title line: 1.5rem at heading line-height 1.2

@@ -62,6 +62,7 @@
     gap: 0.5em;
     font-size: 1.1rem;
     white-space: nowrap;
+    break-inside: avoid;
 }
 
 .problem-text {
@@ -116,7 +117,7 @@
         color: #000;
     }
 
-    .answer-key-sheet {
-        page-break-before: always;
+    .sheet + .sheet {
+        break-before: page;
     }
 }
