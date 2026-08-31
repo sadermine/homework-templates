@@ -51,12 +51,17 @@
 }
 
 /* Every cell carries all four borders, so a ragged last page still closes each
-   filled column. The negative margins pull each cell 1px over its right and
-   bottom neighbours so shared edges overlap at 1px instead of stacking to 2px. */
+   filled column. The negative margins pull each cell N px over its right and
+   bottom neighbours so shared edges overlap instead of stacking to double width.
+   --grid-border-px (set by fitSheetsToContainer() in print.js when the on-screen
+   preview is shrunk to fit, issue #8) is normally 1, but grows when the preview is
+   scaled down far enough that a plain 1px border would paint sub-pixel and
+   anti-alias away (issue #24), the horizontal rules first. Unset (defaults to 1) at
+   1:1 and always in print, so neither is affected. */
 .problem-grid.ruled .problem {
     align-items: center;
-    border: 1px solid #999;
-    margin: 0 -1px -1px 0;
+    border: calc(var(--grid-border-px, 1) * 1px) solid #999;
+    margin: 0 calc(var(--grid-border-px, 1) * -1px) calc(var(--grid-border-px, 1) * -1px) 0;
 }
 
 /* On screen the sheet keeps its true paper width and renders at 1:1 when that fits;
@@ -130,12 +135,14 @@
 
     .sheet {
         max-width: none;
-        /* !important: fitSheetsToContainer() in print.js leaves an inline transform
-           and margin on a scaled-down preview sheet (see there for why), and inline
-           styles otherwise outrank these rules. Force the untransformed, unscaled
-           layout the printed page geometry in PageLayout.cs assumes. */
+        /* !important: fitSheetsToContainer() in print.js leaves an inline transform,
+           margin, and --grid-border-px on a scaled-down preview sheet (see there for
+           why), and inline styles otherwise outrank these rules. Force the
+           untransformed, unscaled layout the printed page geometry in PageLayout.cs
+           assumes, and the plain 1px ruled-grid border that goes with it. */
         transform: none !important;
         margin: 0 !important;
+        --grid-border-px: 1 !important;
         padding: 0;
         border: none;
         border-radius: 0;

@@ -72,18 +72,29 @@ async function checkCase(context, { paper, orientation, viewportLabel }, failure
   // spec regardless — comparing scrollWidth to clientWidth here would flag every
   // scaled-down sheet as broken even though nothing is actually visible past the
   // container edge.
+  // borderWidth here is the *declared* (pre-transform) computed style, which
+  // getComputedStyle always reports regardless of any ancestor transform — it would
+  // read as a healthy 1px even in the broken state #24 reported, so it can't be the
+  // regression guard on its own. paintedBorderWidth (declared width × the actual
+  // transform scale) is what issue #24's fix establishes: print.css inflates the
+  // ruled border so this stays >=~1px regardless of how much the preview shrinks.
+  // scale is measured from real rendered geometry (painted / layout width), not a
+  // named custom property, so this check stays valid across implementation changes.
   const measurement = await page.evaluate(() => {
     const doc = document.documentElement;
     const container = document.querySelector(".page main .content");
     const sheet = document.querySelector(".sheet");
     const problem = document.querySelector(".problem-grid.ruled .problem");
     const style = problem ? getComputedStyle(problem) : null;
+    const scale = sheet && sheet.offsetWidth > 0 ? sheet.getBoundingClientRect().width / sheet.offsetWidth : 1;
+    const borderWidth = style ? parseFloat(style.borderTopWidth) : null;
     return {
       viewportWidth: doc.clientWidth,
       pageScrollWidth: doc.scrollWidth,
       containerClientWidth: container?.clientWidth ?? null,
       sheetWidth: sheet?.getBoundingClientRect().width ?? null,
-      borderWidth: style ? parseFloat(style.borderTopWidth) : null,
+      borderWidth,
+      paintedBorderWidth: borderWidth == null ? null : borderWidth * scale,
     };
   });
 
@@ -104,10 +115,12 @@ async function checkCase(context, { paper, orientation, viewportLabel }, failure
     );
   }
 
-  if (measurement.borderWidth == null) {
+  if (measurement.paintedBorderWidth == null) {
     failures.push(`${label}: no .problem-grid.ruled .problem cell found to check grid-line borders`);
-  } else if (measurement.borderWidth <= 0) {
-    failures.push(`${label}: grid-line border rendered at ${measurement.borderWidth}px (expected > 0)`);
+  } else if (measurement.paintedBorderWidth < 0.9) {
+    failures.push(
+      `${label}: ruled grid border paints at ~${measurement.paintedBorderWidth.toFixed(2)}px after scaling (expected ~1px)`,
+    );
   }
 
   await page.close();
