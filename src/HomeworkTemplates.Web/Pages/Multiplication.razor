@@ -147,12 +147,29 @@
     </div>
 </div>
 
+@if (_tables.Count > 0 && _worksheet.Pages.Count > 1)
+{
+    <nav class="preview-pager no-print" aria-label="Preview pages">
+        <span class="preview-pager-label">Page:</span>
+        @for (var n = 1; n <= _worksheet.Pages.Count; n++)
+        {
+            var page = n;
+            <button type="button"
+                    class="preview-pager-page @(page == _previewPage ? "is-current" : null)"
+                    aria-current="@(page == _previewPage ? "page" : null)"
+                    @onclick="@(() => _previewPage = page)">
+                @(page)
+            </button>
+        }
+    </nav>
+}
+
 @if (_tables.Count > 0)
 {
-    <SheetSet Worksheet="_worksheet" />
+    <SheetSet Worksheet="_worksheet" VisiblePage="_previewPage" />
     @if (_showAnswerKey)
     {
-        <SheetSet Worksheet="_worksheet" ShowAnswers="true" />
+        <SheetSet Worksheet="_worksheet" ShowAnswers="true" VisiblePage="_previewPage" />
     }
 }
 
@@ -174,6 +191,7 @@
     private bool _showNameAndDate;
     private bool _showGridLines;
     private bool _showAnswerKey;
+    private int _previewPage = 1;
 
     private Worksheet _worksheet = default!;
     private string? _error;
@@ -280,6 +298,7 @@
             {
                 _count = clamped;
             }
+            _previewPage = Math.Clamp(_previewPage, 1, _worksheet.Pages.Count);
         }
     }
 
