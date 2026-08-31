@@ -54,6 +54,18 @@
     font-weight: 600;
 }
 
+.seed-field {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+.seed-hint {
+    font-size: 0.8rem;
+    color: #6b6b6b;
+}
+
 .count-available {
     font-size: 0.85rem;
     color: #6b6b6b;

@@ -1,6 +1,7 @@
 @{
     var spec = Worksheet.Spec;
     var pageCount = Worksheet.Pages.Count;
+    var showSeed = spec.Order == ProblemOrder.Shuffled;
 }
 
 @foreach (var page in Worksheet.Pages)
@@ -35,7 +36,7 @@
         </div>
 
         <footer class="sheet-footer">
-            Seed @spec.Seed@(pageCount > 1 ? $" · Page {page.Number} of {pageCount}" : "")
+            @(showSeed ? $"Seed {spec.Seed}" : "")@(showSeed && pageCount > 1 ? " · " : "")@(pageCount > 1 ? $"Page {page.Number} of {pageCount}" : "")
         </footer>
     </section>
 }

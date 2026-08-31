@@ -131,11 +131,14 @@
     </div>
 
     <div class="control-group control-row">
-        <label>
-            Seed
-            <input type="number" @bind="_seed" @bind:after="Rebuild" />
-        </label>
-        <button type="button" @onclick="ShuffleSeed">Shuffle</button>
+        <div class="seed-field">
+            <label>
+                Seed
+                <input type="number" @bind="_seed" @bind:after="Rebuild" disabled="@(!SeedEnabled)" />
+            </label>
+            <span class="seed-hint">(Only used for shuffle order)</span>
+        </div>
+        <button type="button" @onclick="ShuffleSeed" disabled="@(!SeedEnabled)">Shuffle</button>
     </div>
 
     <div class="control-group control-row">
@@ -179,6 +182,8 @@
     private PageMetrics Page => _worksheet.Spec.Page;
 
     private int Available => _worksheet.Spec.AvailableProblems;
+
+    private bool SeedEnabled => _order == ProblemOrder.Shuffled;
 
     private static string Mm(double millimetres) =>
         FormattableString.Invariant($"{millimetres}mm");
