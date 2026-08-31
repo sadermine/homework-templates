@@ -16,17 +16,31 @@
     border: 0;
 }
 
+/* Mobile-first: stacked by default, since a row mixing a label, radios, a number
+   input, and a hint (e.g. the Problems group) wraps into uneven, raggedly-aligned
+   lines below ~360px — align-items:end only aligns items within one wrapped line,
+   not across them. .table-options is exempt: its items are all the same shape
+   (checkbox + one or two digits), so it reflows cleanly at any width and doesn't
+   have this problem. */
 .control-row {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
     gap: 0.75rem 1.25rem;
-    align-items: end;
 }
 
 .table-options {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem 1rem;
+}
+
+@media (min-width: 641px) {
+    .control-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: end;
+    }
 }
 
 .controls label {
@@ -40,6 +54,15 @@
     flex-direction: column;
     align-items: stretch;
     gap: 0.25rem;
+}
+
+.controls input[type="number"],
+.controls input[type="text"],
+.controls select {
+    /* iOS Safari zooms the viewport on focus for any input computing under 16px, and
+       doesn't zoom back out on blur. These never declared a font-size, so they fell
+       back to the browser default (~13px), well under that threshold. */
+    font-size: 1rem;
 }
 
 .controls input[type="number"] {
@@ -83,6 +106,15 @@ legend {
     font-weight: 600;
 }
 
+.copy-status {
+    font-size: 0.85rem;
+    color: #2e7d32;
+}
+
+.copy-status-error {
+    color: #b00020;
+}
+
 .preview-pager {
     display: flex;
     flex-wrap: wrap;
@@ -111,4 +143,29 @@ legend {
     border-color: #333;
     background: #333;
     color: #fff;
+}
+
+/* WCAG 2.5.5 target size (44x44) on touchscreens: checkboxes/radios and the pager
+   buttons otherwise render at browser-default sizes (~13-16px, ~32x26px), which is
+   fine for a mouse pointer but too small to tap reliably. Gated to coarse pointers
+   so mouse/trackpad users keep the compact desktop sizing. Labels wrap every
+   checkbox/radio and toggle it when clicked anywhere inside (standard <label>
+   behaviour), so growing the label is enough to grow the tap target without
+   fighting native checkbox/radio hit-area styling. */
+@media (pointer: coarse) {
+    .controls label {
+        min-height: 44px;
+        padding: 0.5rem 0.25rem;
+    }
+
+    .controls input[type="checkbox"],
+    .controls input[type="radio"] {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .preview-pager-page {
+        min-width: 44px;
+        min-height: 44px;
+    }
 }
