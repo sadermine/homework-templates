@@ -108,11 +108,10 @@ public class WorksheetGeneratorTests
     }
 
     [Fact]
-    public void Sequential_column_order_restarts_on_each_page()
+    public void Sequential_pages_carry_consecutive_slices_of_the_sorted_draw()
     {
-        // Sorted draw is (2,1..12)(3,1..12)(4,1..6). A5 portrait is 2 columns x 9 rows,
-        // so page 1 is the first 18 and page 2 is (3,7..12)(4,1..6), each laid out
-        // column-major against its own slice, not against the whole 30-problem list.
+        // Sorted draw is (2,1..12)(3,1..12)(4,1..6). A5 portrait holds 18 per page, so
+        // page 2 is the next slice in reading order; the sheet grid flows it into columns.
         var spec = Spec(
             tables: new[] { 2, 3, 4 }, min: 1, max: 12, count: 30,
             paper: PaperSize.A5, orientation: PageOrientation.Portrait, order: ProblemOrder.Sequential);
@@ -121,12 +120,8 @@ public class WorksheetGeneratorTests
 
         Problem[] pageTwo =
         [
-            new(3, 7), new(4, 1),
-            new(3, 8), new(4, 2),
-            new(3, 9), new(4, 3),
-            new(3, 10), new(4, 4),
-            new(3, 11), new(4, 5),
-            new(3, 12), new(4, 6),
+            new(3, 7), new(3, 8), new(3, 9), new(3, 10), new(3, 11), new(3, 12),
+            new(4, 1), new(4, 2), new(4, 3), new(4, 4), new(4, 5), new(4, 6),
         ];
         Assert.Equal(pageTwo, worksheet.Pages[1].Problems);
     }
@@ -181,23 +176,22 @@ public class WorksheetGeneratorTests
     }
 
     [Fact]
-    public void Sequential_places_problems_down_each_column_then_across()
+    public void Sequential_orders_problems_by_table_then_multiplier()
     {
-        // Sorted pool is (2,2)(2,3)(2,4)(3,2)(3,3)(3,4); Letter portrait has 3 columns.
         var spec = Spec(tables: new[] { 3, 2 }, min: 2, max: 4, count: 6, order: ProblemOrder.Sequential);
 
         var worksheet = WorksheetGenerator.Generate(spec);
 
         Problem[] expected =
         [
-            new(2, 2), new(2, 4), new(3, 3),
-            new(2, 3), new(3, 2), new(3, 4),
+            new(2, 2), new(2, 3), new(2, 4),
+            new(3, 2), new(3, 3), new(3, 4),
         ];
         Assert.Equal(expected, worksheet.Problems);
     }
 
     [Fact]
-    public void Shuffled_output_is_not_reflowed_into_columns()
+    public void Shuffled_and_sequential_differ_in_order()
     {
         var spec = Spec(tables: new[] { 3, 2 }, min: 2, max: 4, count: 6, order: ProblemOrder.Shuffled);
 

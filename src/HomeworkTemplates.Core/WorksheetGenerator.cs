@@ -39,13 +39,11 @@ public static class WorksheetGenerator
 
         var problems = pool.Take(target).ToList();
 
+        // Each page carries its slice in reading order. The sheet grid flows column-major
+        // at a fixed row count, so "down each column" is a CSS concern, not a permutation.
         var pages = problems
             .Chunk(spec.Page.ProblemsPerPage)
-            .Select((chunk, index) => new WorksheetPage(
-                index + 1,
-                spec.Order == ProblemOrder.Sequential
-                    ? ProblemLayout.ColumnMajor(chunk, spec.Page.Columns)
-                    : chunk))
+            .Select((chunk, index) => new WorksheetPage(index + 1, chunk))
             .ToArray();
 
         return new Worksheet(spec, pages);
