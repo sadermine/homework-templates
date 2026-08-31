@@ -6,6 +6,12 @@
 
 main {
     flex: 1;
+    /* A flex item's automatic minimum size is based on its content's unscaled layout
+       width by default, ignoring any descendant overflow:hidden/auto — so on the
+       >=641px row layout below, main would grow to fit an oversized .sheet instead of
+       letting .content contain it, and the whole page would gain a horizontal
+       scrollbar. min-width: 0 opts out of that. */
+    min-width: 0;
 }
 
 .sidebar {

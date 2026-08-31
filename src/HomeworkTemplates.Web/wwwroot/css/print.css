@@ -59,12 +59,15 @@
     margin: 0 -1px -1px 0;
 }
 
-/* On screen the sheet keeps its true paper width and the preview scrolls, so a
-   wide size (Tabloid, landscape) previews at 1:1 instead of squashing its grid.
-   Print overrides this below with max-width: none and the @page size. */
+/* On screen the sheet keeps its true paper width and renders at 1:1 when that fits;
+   otherwise fitSheetsToContainer() in print.js scales it down to the container width
+   with a transform. transform doesn't shrink the element's layout box, only its
+   paint, so the container still needs to hide (not scroll) that leftover unscaled
+   layout space rather than exposing it as a horizontal scrollbar. Print overrides
+   this below with max-width: none and the @page size. */
 @media screen {
     .page main .content {
-        overflow-x: auto;
+        overflow-x: hidden;
     }
 
     .sheet {
@@ -127,7 +130,12 @@
 
     .sheet {
         max-width: none;
-        margin: 0;
+        /* !important: fitSheetsToContainer() in print.js leaves an inline transform
+           and margin on a scaled-down preview sheet (see there for why), and inline
+           styles otherwise outrank these rules. Force the untransformed, unscaled
+           layout the printed page geometry in PageLayout.cs assumes. */
+        transform: none !important;
+        margin: 0 !important;
         padding: 0;
         border: none;
         border-radius: 0;

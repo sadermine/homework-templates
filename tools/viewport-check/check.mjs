@@ -62,19 +62,26 @@ async function checkCase(context, { paper, orientation, viewportLabel }, failure
   await page.goto(url, { waitUntil: "networkidle" });
   await page.waitForSelector(".sheet", { timeout: 15_000 });
 
-  // documentElement.scrollWidth vs. clientWidth catches real horizontal overflow of
-  // the page regardless of which ancestor ends up "wide" — .content's own bounding
-  // box isn't reliable here: main{flex:1} has no min-width:0, so on a >=641px row
-  // layout it can grow to fit an oversized child instead of clipping it, which would
-  // make a check against .content's rect pass even though the page still scrolls.
+  // Two independent checks: documentElement.scrollWidth catches the whole page
+  // scrolling (main{flex:1} needs min-width:0 or it grows to fit an oversized child
+  // instead of clipping it). The sheet's own painted bounding box vs. .content's
+  // clientWidth catches it not fitting inside the preview. Deliberately NOT
+  // .content's scrollWidth: .content uses overflow-x:hidden, which crops the
+  // *visual* overflow left over from transform:scale (transform doesn't shrink the
+  // layout box) but scrollWidth still reports that full pre-clip layout size by
+  // spec regardless — comparing scrollWidth to clientWidth here would flag every
+  // scaled-down sheet as broken even though nothing is actually visible past the
+  // container edge.
   const measurement = await page.evaluate(() => {
     const doc = document.documentElement;
+    const container = document.querySelector(".page main .content");
     const sheet = document.querySelector(".sheet");
     const problem = document.querySelector(".problem-grid.ruled .problem");
     const style = problem ? getComputedStyle(problem) : null;
     return {
       viewportWidth: doc.clientWidth,
       pageScrollWidth: doc.scrollWidth,
+      containerClientWidth: container?.clientWidth ?? null,
       sheetWidth: sheet?.getBoundingClientRect().width ?? null,
       borderWidth: style ? parseFloat(style.borderTopWidth) : null,
     };
@@ -88,6 +95,13 @@ async function checkCase(context, { paper, orientation, viewportLabel }, failure
     failures.push(
       `${label}: page requires horizontal scroll (scrollWidth ${measurement.pageScrollWidth}px > viewport ${measurement.viewportWidth}px; sheet rendered at ${measurement.sheetWidth.toFixed(1)}px)`,
     );
+  } else if (
+    measurement.containerClientWidth != null &&
+    measurement.sheetWidth > measurement.containerClientWidth + 1
+  ) {
+    failures.push(
+      `${label}: sheet (${measurement.sheetWidth.toFixed(1)}px) does not fit the preview container (${measurement.containerClientWidth}px)`,
+    );
   }
 
   if (measurement.borderWidth == null) {
@@ -97,6 +111,37 @@ async function checkCase(context, { paper, orientation, viewportLabel }, failure
   }
 
   await page.close();
+}
+
+// Confirms the preview scaling never leaks into print: fitSheetsToContainer() leaves
+// an inline transform/margin on a scaled sheet (see print.js), and only the
+// !important rules in print.css's @media print block stand between that and a
+// physically wrong printed page. Checked on the most-scaled case in the matrix
+// (Tabloid landscape on a phone) since that's where a leak would be most visible.
+async function checkPrintUnaffected(browser, failures) {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  await page.goto(`${BASE_URL}/multiplication?paper=Tabloid&orient=Landscape`, {
+    waitUntil: "networkidle",
+  });
+  await page.waitForSelector(".sheet", { timeout: 15_000 });
+  await page.emulateMedia({ media: "print" });
+
+  const printStyle = await page.evaluate(() => {
+    const style = getComputedStyle(document.querySelector(".sheet"));
+    return { transform: style.transform, marginLeft: style.marginLeft, marginBottom: style.marginBottom };
+  });
+
+  if (printStyle.transform !== "none") {
+    failures.push(`print: .sheet keeps a preview transform under print media (${printStyle.transform})`);
+  }
+  if (printStyle.marginLeft !== "0px" || printStyle.marginBottom !== "0px") {
+    failures.push(
+      `print: .sheet keeps a preview margin under print media (left ${printStyle.marginLeft}, bottom ${printStyle.marginBottom})`,
+    );
+  }
+
+  await context.close();
 }
 
 async function main() {
@@ -141,6 +186,8 @@ async function main() {
         );
         await context.close();
       }
+
+      await checkPrintUnaffected(browser, failures);
     } finally {
       await browser.close();
     }

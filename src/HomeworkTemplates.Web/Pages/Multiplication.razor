@@ -246,13 +246,16 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            // Warm the module now so the first tap of Print/Copy link on a phone doesn't
-            // await a network import before calling window.print()/clipboard, which breaks
-            // the transient user-activation mobile browsers require for both.
-            await Module();
-        }
+        // Warm the module on first render so the first tap of Print/Copy link on a phone
+        // doesn't await a network import before calling window.print()/clipboard, which
+        // breaks the transient user-activation mobile browsers require for both. Module()
+        // is memoized, so this is a no-op on later renders.
+        var module = await Module();
+
+        // Re-fit the preview to its container on every render: a spec change (paper
+        // size, orientation, grid toggle) can resize the sheet, and the pager can
+        // reveal a page that was previously hidden (and unscaled) behind display:none.
+        await module.InvokeVoidAsync("fitSheetsToContainer");
     }
 
     private void ToggleTable(int table, bool selected)
