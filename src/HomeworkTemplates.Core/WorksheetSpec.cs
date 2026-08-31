@@ -21,13 +21,13 @@ public sealed record WorksheetSpec(
     public const int MaxTitleLength = 80;
 
     public static WorksheetSpec Default { get; } = new(
-        Tables: new[] { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 },
+        Tables: new[] { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 },
         MultiplierMin: 1,
-        MultiplierMax: 12,
+        MultiplierMax: 10,
         ProblemCount: 30,
         Order: ProblemOrder.Sequential,
         Paper: PaperSize.Letter,
-        Orientation: PageOrientation.Portrait,
+        Orientation: PageOrientation.Landscape,
         Seed: 1,
         Title: "Multiplication Practice",
         ShowNameAndDate: true);
