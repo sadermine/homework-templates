@@ -165,7 +165,7 @@ dotnet_diagnostic.CA1873.severity = none
 # is a build error under TreatWarningsAsErrors.
 dotnet_diagnostic.CA1822.severity = suggestion
 
-[**/{tests,test}/**/*.cs]
+[{,**/}{tests,test}/**/*.cs]
 # Test names are Method_Scenario_ExpectedResult by convention, so the underscore rule cannot apply.
 dotnet_diagnostic.CA1707.severity = none
 # CA1861 fires on inline array literals used as test data. Hoisting them into named static fields
@@ -176,11 +176,11 @@ dotnet_diagnostic.CA1861.severity = none
 dotnet_diagnostic.CA1707.severity = none
 dotnet_diagnostic.CA1861.severity = none
 
-[**/{external,third-party,vendor,generated}/**.cs]
+[{,**/}{external,third-party,vendor,generated}/**.cs]
 generated_code = true
 
-[**/Migrations/**.cs]
+[{,**/}Migrations/**.cs]
 generated_code = true
 
-[**/wwwroot/lib/**]
+[{,**/}wwwroot/lib/**]
 generated_code = true
