@@ -1,0 +1,186 @@
+# Global code style for D:\my-repo.
+# Seal a directory out of these rules by putting `root = true` in its own .editorconfig.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{json,js,ts,yml,yaml,xml,csproj,props,targets,razor,html,css}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.cs]
+max_line_length = 120
+
+#### Structure ####
+
+csharp_style_namespace_declarations = file_scoped:error
+dotnet_diagnostic.IDE0161.severity = error
+csharp_using_directive_placement = outside_namespace:error
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+dotnet_diagnostic.IDE0005.severity = warning
+
+#### Braces and blocks ####
+
+csharp_prefer_braces = true:error
+dotnet_diagnostic.IDE0011.severity = error
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_prefer_simple_using_statement = true:suggestion
+csharp_style_prefer_top_level_statements = false:suggestion
+
+#### var ####
+
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_elsewhere = false:suggestion
+
+#### Expression style ####
+
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_style_expression_bodied_accessors = true:suggestion
+csharp_style_expression_bodied_constructors = false:suggestion
+csharp_style_expression_bodied_lambdas = true:suggestion
+
+#### Modern language features ####
+
+csharp_style_prefer_primary_constructors = true:suggestion
+csharp_style_pattern_matching_over_is_with_cast_check = true:warning
+csharp_style_pattern_matching_over_as_with_null_check = true:warning
+csharp_style_prefer_switch_expression = true:suggestion
+csharp_style_prefer_pattern_matching = true:suggestion
+csharp_style_throw_expression = true:suggestion
+csharp_style_conditional_delegate_call = true:suggestion
+csharp_style_prefer_range_operator = true:suggestion
+csharp_style_prefer_index_operator = true:suggestion
+csharp_style_inlined_variable_declaration = true:suggestion
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_prefer_collection_expression = when_types_loosely_match:suggestion
+dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_null_propagation = true:suggestion
+dotnet_style_prefer_conditional_expression_over_assignment = true:silent
+dotnet_style_prefer_conditional_expression_over_return = true:silent
+
+#### Immutability and access ####
+
+dotnet_style_readonly_field = true:warning
+csharp_prefer_static_local_function = true:suggestion
+csharp_style_prefer_readonly_struct = true:suggestion
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:error
+dotnet_diagnostic.IDE0040.severity = error
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+
+#### Naming ####
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_style.camel_case.capitalization = camel_case
+dotnet_naming_style.interface_prefix.capitalization = pascal_case
+dotnet_naming_style.interface_prefix.required_prefix = I
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+dotnet_naming_style.type_parameter_prefix.capitalization = pascal_case
+dotnet_naming_style.type_parameter_prefix.required_prefix = T
+
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+dotnet_naming_rule.interfaces_start_with_i.symbols = interfaces
+dotnet_naming_rule.interfaces_start_with_i.style = interface_prefix
+dotnet_naming_rule.interfaces_start_with_i.severity = error
+
+dotnet_naming_symbols.type_parameters.applicable_kinds = type_parameter
+dotnet_naming_rule.type_parameters_start_with_t.symbols = type_parameters
+dotnet_naming_rule.type_parameters_start_with_t.style = type_parameter_prefix
+dotnet_naming_rule.type_parameters_start_with_t.severity = error
+
+dotnet_naming_symbols.types_and_members.applicable_kinds = class,struct,enum,delegate,method,property,event
+dotnet_naming_symbols.types_and_members.applicable_accessibilities = *
+dotnet_naming_rule.types_and_members_are_pascal.symbols = types_and_members
+dotnet_naming_rule.types_and_members_are_pascal.style = pascal_case
+dotnet_naming_rule.types_and_members_are_pascal.severity = warning
+
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.required_modifiers = const
+dotnet_naming_rule.constants_are_pascal.symbols = constants
+dotnet_naming_rule.constants_are_pascal.style = pascal_case
+dotnet_naming_rule.constants_are_pascal.severity = warning
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_rule.private_fields_are_underscore_camel.symbols = private_fields
+dotnet_naming_rule.private_fields_are_underscore_camel.style = underscore_camel_case
+dotnet_naming_rule.private_fields_are_underscore_camel.severity = warning
+
+dotnet_naming_symbols.parameters_and_locals.applicable_kinds = parameter,local
+dotnet_naming_rule.parameters_and_locals_are_camel.symbols = parameters_and_locals
+dotnet_naming_rule.parameters_and_locals_are_camel.style = camel_case
+dotnet_naming_rule.parameters_and_locals_are_camel.severity = warning
+
+#### Correctness rules promoted to errors ####
+
+# Async correctness. A dropped Task is a silently swallowed failure.
+dotnet_diagnostic.CS4014.severity = error
+dotnet_diagnostic.CA2016.severity = error
+dotnet_diagnostic.CA1068.severity = error
+dotnet_diagnostic.VSTHRD100.severity = error
+
+# Disposal.
+dotnet_diagnostic.CA1001.severity = error
+dotnet_diagnostic.CA2213.severity = error
+
+# Culture-dependent parsing and formatting. Silent data corruption across locales.
+dotnet_diagnostic.CA1305.severity = warning
+dotnet_diagnostic.CA1310.severity = warning
+
+#### Rules deliberately disabled ####
+
+# CA2007 (ConfigureAwait) and CA1062 (public arg validation) target reusable libraries.
+# These are personal apps with no external callers, so both are pure noise.
+dotnet_diagnostic.CA2007.severity = none
+dotnet_diagnostic.CA1062.severity = none
+# CA1515 wants app types internal. Blocks the public-by-default style these apps use.
+dotnet_diagnostic.CA1515.severity = none
+# Logging-allocation rules. Both exist to keep allocations out of hot logging paths. Nothing here
+# logs on a hot path, and satisfying them means LoggerMessage delegates and IsEnabled guards that
+# make the call sites harder to read for no measurable gain.
+dotnet_diagnostic.CA1848.severity = none
+dotnet_diagnostic.CA1873.severity = none
+
+# CA1822 wants instance members that touch no state made static. That is a design decision about
+# how a type is called, not a performance fix, so it stays advisory. Every other performance rule
+# is a build error under TreatWarningsAsErrors.
+dotnet_diagnostic.CA1822.severity = suggestion
+
+[**/{tests,test}/**/*.cs]
+# Test names are Method_Scenario_ExpectedResult by convention, so the underscore rule cannot apply.
+dotnet_diagnostic.CA1707.severity = none
+# CA1861 fires on inline array literals used as test data. Hoisting them into named static fields
+# to save allocations makes the data harder to read and buys nothing in a test.
+dotnet_diagnostic.CA1861.severity = none
+
+[*{Tests,Test,Fixture,Fake,Stub}.cs]
+dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.CA1861.severity = none
+
+[**/{external,third-party,vendor,generated}/**.cs]
+generated_code = true
+
+[**/Migrations/**.cs]
+generated_code = true
+
+[**/wwwroot/lib/**]
+generated_code = true
