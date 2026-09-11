@@ -1,9 +1,10 @@
-# Until this existed, "mergeable" on a pull request only meant "no conflict": there was no build
-# check, so whoever merged had to clone the merge ref and build it by hand. This is that build.
+# Copy of the reference CI workflow, D:\my-repo\.github\workflows\ci.yml. The rule behind it is
+# ~/.claude/rules/ci-standard.md. Review this file by diffing it against the reference; every
+# line that differs carries a comment saying which permitted deviation it is.
 name: CI
 
-# Pull requests only. deploy.yml already runs test and publish on every push to main, so a push
-# trigger here would build main twice for the same commit.
+# Permitted deviation: no push trigger. deploy.yml already builds, tests and publishes every
+# push to main, so a push trigger here would build main twice for the same commit.
 on:
   pull_request:
   workflow_dispatch:
@@ -11,27 +12,38 @@ on:
 permissions:
   contents: read
 
-# One run per ref. A new push supersedes the run it made obsolete instead of paying for both.
+# A new push to a pull request supersedes the run it made obsolete. Pushes to main are never
+# cancelled: two close merges would otherwise leave main with a run that never concluded,
+# neither green nor red.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  build-and-test:
+  # The job id is the check name. Merge tooling matches the literal string `build` in every
+  # repository. Renaming it switches the merge gate off without anyone deciding that.
+  build:
+    # ubuntu-latest unless the target framework forbids it. WPF (net10.0-windows) needs
+    # windows-latest, which bills at twice the Linux rate.
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
 
-      # Same pin as deploy.yml, deliberately. If the SDK moves for one it moves for both.
+      # Floats within the band the runner image ships. Directory.Build.props pins AnalysisLevel,
+      # so a newer SDK cannot turn new analyzer rules into errors here. Same pin as deploy.yml,
+      # deliberately: if the SDK moves for one it moves for both.
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
 
+      # Separate step so a feed failure and a code failure go red in different places.
       - run: dotnet restore
 
-      # Release, matching deploy.yml, so this check fails before a merge breaks the Pages deploy
-      # rather than after.
+      # Release, because that is what ships. Warnings-as-errors and the analyzers come from the
+      # repository's Directory.Build.props, never from flags on this line.
       - run: dotnet build -c Release --no-restore
 
+      # Delete this step in a repository with no test project. A green step over zero tests
+      # makes the gate look stronger than it is.
       - run: dotnet test -c Release --no-build
