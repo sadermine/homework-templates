@@ -1,5 +1,3 @@
-using HomeworkTemplates.Core;
-
 namespace HomeworkTemplates.Core.Tests;
 
 public class WorksheetGeneratorTests
