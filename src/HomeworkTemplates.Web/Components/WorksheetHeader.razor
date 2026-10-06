@@ -1,0 +1,18 @@
+<header class="sheet-header">
+    <h2 class="sheet-title">@Title</h2>
+    @if (ShowNameAndDate)
+    {
+        <p class="name-date">
+            <span class="name-field"><strong>Name:</strong><span class="write-in"></span></span>
+            <span class="date-field"><strong>Date:</strong><span class="write-in"></span></span>
+        </p>
+    }
+</header>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool ShowNameAndDate { get; set; } = true;
+}

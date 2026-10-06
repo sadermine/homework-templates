@@ -36,9 +36,9 @@ public static class PageLayout
     /// Vertical space the sheet header and footer take from the page, mirrored from
     /// <c>wwwroot/css/print.css</c>. Drift here changes printed output with nothing failing,
     /// so the CSS rules carry a comment pointing back to this constant. The budget always
-    /// counts the Name/Date line, even though that line only renders on page 1 of a worksheet
-    /// and only when <see cref="WorksheetSpec.ShowNameAndDate"/> is set, so every other page
-    /// under-fills by one line rather than risking an overflow. A title long enough to wrap on
+    /// counts the Name/Date line, which renders on every student page when
+    /// <see cref="WorksheetSpec.ShowNameAndDate"/> is set. Answer keys and worksheets with
+    /// that option disabled under-fill by one line rather than risking an overflow. A title long enough to wrap on
     /// narrow paper still steals a row; pagination pushes the lost problems to the next page.
     /// </summary>
     public const double SheetChromeMm =
