@@ -8,16 +8,8 @@
 {
     var hiddenInPreview = VisiblePage != 0 && page.Number != VisiblePage;
     <section class="sheet @(ShowAnswers ? "answer-key-sheet" : "worksheet-sheet") @(hiddenInPreview ? "preview-hidden" : null)" style="@SheetStyle.For(spec.Page)">
-        <header class="sheet-header">
-            <h2 class="sheet-title">@(ShowAnswers ? $"Answer Key for {spec.Title}" : spec.Title)</h2>
-            @if (!ShowAnswers && spec.ShowNameAndDate && page.Number == 1)
-            {
-                <p class="name-date">
-                    <span>Name: <span class="write-in"></span></span>
-                    <span>Date: <span class="write-in"></span></span>
-                </p>
-            }
-        </header>
+        <WorksheetHeader Title="@(ShowAnswers ? $"Answer Key for {spec.Title}" : spec.Title)"
+                         ShowNameAndDate="@(!ShowAnswers && spec.ShowNameAndDate)" />
 
         <div class="problem-grid @(spec.ShowGridLines ? "ruled" : null)" style="@SheetStyle.GridTemplate(spec.Page)">
             @foreach (var problem in page.Problems)

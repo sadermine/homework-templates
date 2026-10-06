@@ -16,13 +16,14 @@
 
 <h1 class="no-print">Multiplication Tables</h1>
 
+<div class="multiplication-preview" style="@SheetStyle.For(Page)">
 <div class="controls no-print">
     @if (_error is not null)
     {
         <p class="controls-error" role="alert">@_error</p>
     }
 
-    <fieldset class="control-group">
+    <fieldset class="control-group table-group">
         <legend>Tables</legend>
         <div class="table-options">
             @foreach (var table in SelectableTables)
@@ -37,13 +38,16 @@
         </div>
     </fieldset>
 
-    <div class="control-group control-row">
+    <div class="quick-controls">
+    <div class="control-group control-row multiplier-range">
+        <span class="group-label">Multiplier</span>
         <label>
-            Multiplier min
+            <span class="visually-hidden">Multiplier min</span>
             <input type="number" min="1" max="20" @bind="_min" @bind:after="Rebuild" />
         </label>
         <label>
-            Multiplier max
+            <span aria-hidden="true">to</span>
+            <span class="visually-hidden">Multiplier max</span>
             <input type="number" min="1" max="20" @bind="_max" @bind:after="Rebuild" />
         </label>
     </div>
@@ -63,30 +67,49 @@
             Show only
         </label>
         <input type="number" min="1" max="@Available" disabled="@_allProblems"
+               aria-label="Number of problems"
                @bind="_count" @bind:after="Rebuild" />
         <span class="count-available">max @Available</span>
     </div>
 
     <div class="control-group control-row">
-        <span class="group-label">Order</span>
         <label>
-            <input type="radio" name="order"
-                   checked="@(_order == ProblemOrder.Sequential)"
-                   @onchange="@(() => SetOrder(ProblemOrder.Sequential))" />
-            Sequential
-        </label>
-        <label>
-            <input type="radio" name="order"
-                   checked="@(_order == ProblemOrder.Shuffled)"
-                   @onchange="@(() => SetOrder(ProblemOrder.Shuffled))" />
-            Shuffled
+            <span class="group-label">Order</span>
+            <select @bind="_order" @bind:after="Rebuild">
+                <option value="@ProblemOrder.Sequential">Sequential</option>
+                <option value="@ProblemOrder.Shuffled">Shuffled</option>
+            </select>
         </label>
     </div>
+    </div>
 
-    <div class="control-group control-row">
-        <span class="group-label">Print Preview</span>
+    <div class="controls-footer">
+    <details class="advanced-settings">
+        <summary>Worksheet &amp; print settings</summary>
+        <div class="settings-grid">
+        <div class="settings-group">
+            <h2>Worksheet</h2>
+            <label class="block">
+                <span class="group-label">Title</span>
+                <input type="text" maxlength="80" @bind="_title" @bind:after="Rebuild" />
+            </label>
+            <label>
+                <input type="checkbox" @bind="_showNameAndDate" @bind:after="Rebuild" />
+                Show name &amp; date line
+            </label>
+            <label>
+                <input type="checkbox" @bind="_showGridLines" @bind:after="Rebuild" />
+                Show grid lines
+            </label>
+            <label>
+                <input type="checkbox" @bind="_showAnswerKey" />
+                Print answer key
+            </label>
+        </div>
+        <div class="settings-group">
+        <h2>Paper</h2>
         <label>
-            Paper Size:
+            Paper Size
             <select @bind="_paper" @bind:after="Rebuild">
                 @foreach (var paper in Enum.GetValues<PaperSize>())
                 {
@@ -95,42 +118,16 @@
             </select>
         </label>
         <label>
-            <input type="radio" name="orientation"
-                   checked="@(_orientation == PageOrientation.Portrait)"
-                   @onchange="@(() => SetOrientation(PageOrientation.Portrait))" />
-            Portrait
+            Orientation
+            <select @bind="_orientation" @bind:after="Rebuild">
+                <option value="@PageOrientation.Portrait">Portrait</option>
+                <option value="@PageOrientation.Landscape">Landscape</option>
+            </select>
         </label>
-        <label>
-            <input type="radio" name="orientation"
-                   checked="@(_orientation == PageOrientation.Landscape)"
-                   @onchange="@(() => SetOrientation(PageOrientation.Landscape))" />
-            Landscape
-        </label>
-    </div>
+        </div>
 
-    <div class="control-group">
-        <label class="block">
-            <span class="group-label">Title</span>
-            <input type="text" maxlength="80" @bind="_title" @bind:after="Rebuild" />
-        </label>
-    </div>
-
-    <div class="control-group">
-        <label>
-            <input type="checkbox" @bind="_showNameAndDate" @bind:after="Rebuild" />
-            Show name &amp; date line
-        </label>
-        <label>
-            <input type="checkbox" @bind="_showGridLines" @bind:after="Rebuild" />
-            Show grid lines
-        </label>
-        <label>
-            <input type="checkbox" @bind="_showAnswerKey" />
-            Print answer key
-        </label>
-    </div>
-
-    <div class="control-group control-row">
+        <div class="settings-group">
+        <h2>Shuffle</h2>
         <div class="seed-field">
             <label>
                 Seed
@@ -139,18 +136,25 @@
             <span class="seed-hint">(Only used for shuffle order)</span>
         </div>
         <button type="button" @onclick="ShuffleSeed" disabled="@(!SeedEnabled)">Shuffle</button>
-    </div>
+        </div>
+        </div>
+    </details>
 
-    <div class="control-group control-row">
-        <button type="button" @onclick="Print" disabled="@(_tables.Count == 0)">Print</button>
+    <div class="control-group control-row print-actions">
+        <button type="button" class="print-button" @onclick="Print" disabled="@(_tables.Count == 0)">Print</button>
         <button type="button" @onclick="CopyLink">Copy link</button>
+    </div>
+    </div>
         @if (_copyStatus is not null)
         {
             <span class="copy-status @(_copyFailed ? "copy-status-error" : null)" role="status">@_copyStatus</span>
         }
-    </div>
 </div>
 
+@if (_tables.Count > 0)
+{
+<div class="preview-toolbar no-print">
+    <span>Print preview · @_worksheet.Spec.Paper @_worksheet.Spec.Orientation.ToString().ToLowerInvariant()</span>
 @if (_tables.Count > 0 && _worksheet.Pages.Count > 1)
 {
     <nav class="preview-pager no-print" aria-label="Preview pages">
@@ -167,6 +171,8 @@
         }
     </nav>
 }
+</div>
+}
 
 @if (_tables.Count > 0)
 {
@@ -176,6 +182,7 @@
         <SheetSet Worksheet="_worksheet" ShowAnswers="true" VisiblePage="_previewPage" />
     }
 }
+</div>
 
 @code {
     private static readonly int[] SelectableTables = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -272,21 +279,9 @@
         Rebuild();
     }
 
-    private void SetOrder(ProblemOrder order)
-    {
-        _order = order;
-        Rebuild();
-    }
-
     private void SetAllProblems(bool all)
     {
         _allProblems = all;
-        Rebuild();
-    }
-
-    private void SetOrientation(PageOrientation orientation)
-    {
-        _orientation = orientation;
         Rebuild();
     }
 
