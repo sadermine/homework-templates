@@ -1,0 +1,56 @@
+<Project>
+
+  <!--
+    Build standards for every .NET project under D:\my-repo.
+    This file is the template. Each repository commits its own identical copy of it and of
+    .editorconfig at its root, so clones, worktrees and CI outside this folder build with the
+    same rules. Change this file first, then update the copies.
+    MSBuild walks up from each project and imports the first Directory.Build.props it finds,
+    so a repository's copy shadows this one, and a tree opts out by placing its own
+    (even an empty <Project/>) at its root.
+    A single project can override any one property by re-declaring it in its .csproj,
+    which is evaluated after this file.
+  -->
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      Pinned on purpose. latest-recommended would turn every new SDK's rules into build errors
+      on repositories nobody touched. Bump it when a project moves to a newer target framework.
+    -->
+    <AnalysisLevel>10.0-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!--
+      IDE0005 (unused usings) only runs during build when the documentation file is generated.
+      That is a long-standing Roslyn limitation, not a preference. CS1591 is suppressed because
+      generating the file otherwise demands an XML doc comment on every public member.
+    -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      Vulnerability scanning reports but never blocks. A newly published advisory against a
+      transitive package must not break an unrelated build on an unrelated day, and neither
+      must an audit source that is unreachable (NU1900) or has no vulnerability data (NU1905).
+      NU1701 covers legacy-framework package compatibility on the older projects here.
+    -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>moderate</NuGetAuditLevel>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1900;NU1901;NU1902;NU1903;NU1904;NU1905;NU1701</WarningsNotAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('Tests'))">
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+</Project>
