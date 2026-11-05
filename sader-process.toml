@@ -1,0 +1,3 @@
+[ci]
+# deploy.yml already builds and tests every push to main, so ci.yml has no push trigger.
+deviations = ["no-push-trigger"]
