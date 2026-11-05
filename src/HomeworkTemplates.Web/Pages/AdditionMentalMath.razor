@@ -1,0 +1,129 @@
+@page "/addition-mental-math"
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<PageTitle>Addition (Mental Math)</PageTitle>
+
+<HeadContent>
+    <style>
+        @@page { size: letter landscape; margin: 10mm; }
+    </style>
+</HeadContent>
+
+<h1 class="no-print">Addition (Mental Math)</h1>
+<div class="addition-controls no-print">
+    <p>Regenerate the addition practice problems and shuffle both matching columns. The first addition row stays as a worked example.</p>
+    <div class="addition-actions">
+        <button type="button" @onclick="Regenerate">Regenerate problems</button>
+        <button type="button" @onclick="Print">Print</button>
+        <span role="status">@_status</span>
+    </div>
+</div>
+
+<section class="sheet addition-sheet worksheet-sheet" style="--sheet-width: 279.4mm; --page-margin: 10mm" aria-label="Addition mental math worksheet">
+    <WorksheetHeader Title="Addition (Mental Math)" />
+    <div class="addition-layout">
+        <div class="make-ten">
+            <p class="matching-instruction">Match the numbers from each column that add up to <strong>10</strong></p>
+            <table class="matching-table" aria-label="Match numbers that add up to ten">
+                <tbody>
+                    @for (var i = 0; i < _matchingRight.Length; i++)
+                    {
+                        <tr><td>@_matchingLeft[i]</td><td></td><td>@_matchingRight[i]</td></tr>
+                    }
+                </tbody>
+            </table>
+            <table class="make-ten-sums" aria-label="Add two to make the next multiple of ten">
+                <tbody>
+                    <tr><td>8</td><td>18</td><td>28</td></tr>
+                    <tr><td>+2</td><td>+2</td><td>+2</td></tr>
+                    <tr class="sum-blanks"><td></td><td></td><td></td></tr>
+                </tbody>
+            </table>
+            <table class="make-ten-sums" aria-label="Add three to make the next multiple of ten">
+                <tbody>
+                    <tr><td>7</td><td>47</td><td>77</td></tr>
+                    <tr><td>+3</td><td>+3</td><td>+3</td></tr>
+                    <tr class="sum-blanks"><td></td><td></td><td></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <table class="addition-table" aria-label="Addition practice">
+            <colgroup><col class="addends-column" /><col /><col /><col class="subtotal-column" /><col class="answer-column" /></colgroup>
+            <thead>
+                <tr>
+                    <th scope="col"><span class="visually-hidden">Problem</span></th>
+                    <th scope="col">break into multiples of ten</th>
+                    <th scope="col">sort biggest to smallest</th>
+                    <th scope="col">Add together</th>
+                    <th scope="col">final answer</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="example-row" aria-label="Worked example">
+                    <td>@MentalAdditionGenerator.Example.Left + @MentalAdditionGenerator.Example.Right =</td>
+                    <td>40 + 3 + 20 + 4 =</td>
+                    <td>40 + 20 + 4 + 3 =</td>
+                    <td>60 + 7 =</td>
+                    <td>@MentalAdditionGenerator.Example.Answer</td>
+                </tr>
+                @foreach (var problem in _problems)
+                {
+                    <tr class="practice-row"><td>@problem.Left + @problem.Right =</td><td></td><td></td><td></td><td></td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@code {
+    private readonly int[] _matchingLeft = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    private readonly int[] _matchingRight = [9, 2, 8, 1, 7, 4, 6, 3, 5];
+    private IReadOnlyList<AdditionProblem> _problems = MentalAdditionGenerator.Generate(Random.Shared.Next());
+    private string? _status;
+    private IJSObjectReference? _module;
+
+    private void Regenerate()
+    {
+        IReadOnlyList<AdditionProblem> next;
+        do
+        {
+            next = MentalAdditionGenerator.Generate(Random.Shared.Next());
+        } while (next.Where((problem, i) => problem == _problems[i]).Any());
+        _problems = next;
+        ShuffleMatchingColumn(_matchingLeft);
+        ShuffleMatchingColumn(_matchingRight);
+        _status = "Practice problems regenerated and matching columns shuffled.";
+    }
+
+    private static void ShuffleMatchingColumn(int[] column)
+    {
+        var previous = column.ToArray();
+        do
+        {
+            Random.Shared.Shuffle(column);
+        } while (column.SequenceEqual(previous));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        _module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/print.js");
+        await _module.InvokeVoidAsync("fitSheetsToContainer");
+    }
+
+    private async Task Print()
+    {
+        if (_module is not null)
+        {
+            await _module.InvokeVoidAsync("printPage");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is not null)
+        {
+            await _module.DisposeAsync();
+        }
+    }
+}

@@ -1,0 +1,60 @@
+# Copy of the reference CI workflow, D:\my-repo\.github\workflows\ci.yml. The rule behind it is
+# ~/.claude/rules/ci-standard.md. Review this file by diffing it against the reference; every
+# line that differs names its permitted deviation, listed in sader-process.toml [ci].deviations.
+name: CI
+
+on:
+  # The default pull_request types plus ready_for_review, so marking a draft ready runs the check
+  # its draft pushes skipped.
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  # drops push: no-push-trigger
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A new push to a pull request supersedes the run it made obsolete. Pushes to main are never
+# cancelled: two close merges would otherwise leave main with a run that never concluded,
+# neither green nor red.
+# A draft's run, whose build is skipped, takes a group of its own, so it never cancels a run that
+# builds. In one group, a push to a draft whose run GitHub creates after the ready_for_review run
+# cancels that run and leaves the head with no build (sadermine/sader-trader #487).
+concurrency:
+  group: ci-${{ github.ref }}-${{ github.event.pull_request.draft && 'draft' || 'build' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # The job id is the check name. Merge tooling matches the literal string `build` in every
+  # repository. Renaming it switches the merge gate off without anyone deciding that.
+  build:
+    # A draft is never merged and its author tests locally, so its pushes spend no minutes. The
+    # check reads skipped on a draft head until the pull request is marked ready.
+    if: ${{ !github.event.pull_request.draft }}
+    # ubuntu-latest unless the target framework forbids it. WPF (net10.0-windows) needs
+    # windows-latest, which bills at twice the Linux rate.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      # Installs the exact SDK global.json pins, with "rollForward": "disable", so CI builds with
+      # the SDK a desk uses and a newly listed SDK cannot fail the run. Fails when global.json is
+      # missing: add it before copying this file.
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      # Separate step so a feed failure and a code failure go red in different places.
+      - run: dotnet restore
+
+      # Release, because that is what ships. Warnings-as-errors and the analyzers come from the
+      # repository's Directory.Build.props, never from flags on this line.
+      - run: dotnet build -c Release --no-restore
+
+      # Delete this step in a repository with no test project. A green step over zero tests
+      # makes the gate look stronger than it is.
+      # With no solution file, use an explicit test-project path and let this step restore
+      # and build it: dotnet test tests/AiUsageWidget.Tests.csproj -c Release.
+      # This is a permitted deviation; keep build policy in Directory.Build.props.
+      - run: dotnet test -c Release --no-build

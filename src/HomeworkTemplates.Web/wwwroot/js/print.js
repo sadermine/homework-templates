@@ -36,7 +36,13 @@ export function fitSheetsToContainer() {
         return;
     }
 
-    const containerWidth = container.clientWidth;
+    // clientWidth includes the article's padding; sheets start inside that padding.
+    // Fit to the actual content width so a landscape preview stays fully visible.
+    const containerStyle = getComputedStyle(container);
+    const containerWidth = container.clientWidth
+        - (parseFloat(containerStyle.paddingLeft) || 0)
+        - (parseFloat(containerStyle.paddingRight) || 0);
+    container.scrollLeft = 0;
 
     for (const sheet of document.querySelectorAll(".sheet")) {
         // Reset before measuring so a scale computed for a previous worksheet spec
@@ -51,7 +57,7 @@ export function fitSheetsToContainer() {
         const naturalWidth = sheet.offsetWidth;
         if (naturalWidth === 0 || naturalWidth <= containerWidth) {
             // Not oversized (or hidden by the preview pager, which reports 0): leave
-            // the CSS-declared 1:1 centred layout alone.
+            // the CSS-declared 1:1 left-aligned layout alone.
             continue;
         }
 

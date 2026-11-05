@@ -14,24 +14,46 @@
    PageLayout.SheetChromeMm, which sets the printed row pitch. Keep them in sync. */
 .sheet-header {
     margin-bottom: 10mm;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 .sheet-title {
     margin: 0 0 5mm;
     font-size: 1.5rem;
+    font-weight: 600;
 }
 
 .name-date {
     display: flex;
-    gap: 14mm;
+    gap: 7mm;
     margin: 0;
     font-size: 1rem;
+    line-height: 1.5;
+}
+
+.name-date > span {
+    display: flex;
+    align-items: baseline;
+    gap: 2mm;
+}
+
+.name-date .name-field {
+    flex: 1;
+    min-width: 0;
+}
+
+.name-date .date-field {
+    flex: 0 0 auto;
 }
 
 .name-date .write-in {
-    display: inline-block;
-    min-width: 45mm;
+    flex: 1;
     border-bottom: 1px solid #000;
+}
+
+.name-date .date-field .write-in {
+    flex: 0 0 40mm;
+    width: 40mm;
 }
 
 /* grid-template-rows/columns and column flow come from SheetStyle.GridTemplate:
@@ -78,6 +100,8 @@
     .sheet {
         max-width: none;
         width: var(--sheet-width, 215.9mm);
+        margin-left: 0;
+        margin-right: 0;
     }
 
     .preview-hidden {
