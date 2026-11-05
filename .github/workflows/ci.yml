@@ -1,12 +1,14 @@
 # Copy of the reference CI workflow, D:\my-repo\.github\workflows\ci.yml. The rule behind it is
 # ~/.claude/rules/ci-standard.md. Review this file by diffing it against the reference; every
-# line that differs carries a comment saying which permitted deviation it is.
+# line that differs names its permitted deviation, listed in sader-process.toml [ci].deviations.
 name: CI
 
-# Permitted deviation: no push trigger. deploy.yml already builds, tests and publishes every
-# push to main, so a push trigger here would build main twice for the same commit.
 on:
+  # The default pull_request types plus ready_for_review, so marking a draft ready runs the check
+  # its draft pushes skipped.
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  # drops push: no-push-trigger
   workflow_dispatch:
 
 permissions:
@@ -15,14 +17,20 @@ permissions:
 # A new push to a pull request supersedes the run it made obsolete. Pushes to main are never
 # cancelled: two close merges would otherwise leave main with a run that never concluded,
 # neither green nor red.
+# A draft's run, whose build is skipped, takes a group of its own, so it never cancels a run that
+# builds. In one group, a push to a draft whose run GitHub creates after the ready_for_review run
+# cancels that run and leaves the head with no build (sadermine/sader-trader #487).
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.ref }}-${{ github.event.pull_request.draft && 'draft' || 'build' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # The job id is the check name. Merge tooling matches the literal string `build` in every
   # repository. Renaming it switches the merge gate off without anyone deciding that.
   build:
+    # A draft is never merged and its author tests locally, so its pushes spend no minutes. The
+    # check reads skipped on a draft head until the pull request is marked ready.
+    if: ${{ !github.event.pull_request.draft }}
     # ubuntu-latest unless the target framework forbids it. WPF (net10.0-windows) needs
     # windows-latest, which bills at twice the Linux rate.
     runs-on: ubuntu-latest
@@ -30,12 +38,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # Floats within the band the runner image ships. Directory.Build.props pins AnalysisLevel,
-      # so a newer SDK cannot turn new analyzer rules into errors here. Same pin as deploy.yml,
-      # deliberately: if the SDK moves for one it moves for both.
+      # Installs the exact SDK global.json pins, with "rollForward": "disable", so CI builds with
+      # the SDK a desk uses and a newly listed SDK cannot fail the run. Fails when global.json is
+      # missing: add it before copying this file.
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 10.0.x
+          global-json-file: global.json
 
       # Separate step so a feed failure and a code failure go red in different places.
       - run: dotnet restore
@@ -46,4 +54,7 @@ jobs:
 
       # Delete this step in a repository with no test project. A green step over zero tests
       # makes the gate look stronger than it is.
+      # With no solution file, use an explicit test-project path and let this step restore
+      # and build it: dotnet test tests/AiUsageWidget.Tests.csproj -c Release.
+      # This is a permitted deviation; keep build policy in Directory.Build.props.
       - run: dotnet test -c Release --no-build
